@@ -1,0 +1,16 @@
+[Unit]
+Description=Stock Alerting Django Application
+After=network.target
+
+[Service]
+Type=simple
+User=stockalert
+WorkingDirectory=/home/stockalert/app
+Environment=PATH=/home/stockalert/app/venv/bin
+Environment=DJANGO_SETTINGS_MODULE=stock_alerting.settings
+ExecStart=/home/stockalert/app/venv/bin/gunicorn --bind 127.0.0.1:8000 stock_alerting.wsgi:application
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

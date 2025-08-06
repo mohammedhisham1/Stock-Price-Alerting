@@ -1,0 +1,17 @@
+[Unit]
+Description=Stock Alerting Celery Worker
+After=network.target
+
+[Service]
+Type=simple
+User=stockalert
+Group=stockalert
+WorkingDirectory=/home/stockalert/app
+Environment=PATH=/home/stockalert/app/venv/bin
+Environment=DJANGO_SETTINGS_MODULE=stock_alerting.settings
+ExecStart=/home/stockalert/app/venv/bin/celery -A stock_alerting worker -l info
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
