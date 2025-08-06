@@ -24,9 +24,18 @@ const Dashboard = () => {
                     alertAPI.getTriggeredAlerts()
                 ]);
 
-                const alerts = alertsResponse.data.results || alertsResponse.data;
-                const stocksData = stocksResponse.data.results || stocksResponse.data;
-                const triggered = triggeredResponse.data.results || triggeredResponse.data;
+                // Handle different response formats
+                const alerts = Array.isArray(alertsResponse.data.results)
+                    ? alertsResponse.data.results
+                    : (alertsResponse.data.results?.data || alertsResponse.data || []);
+
+                const stocksData = Array.isArray(stocksResponse.data.results)
+                    ? stocksResponse.data.results
+                    : (stocksResponse.data.results?.data || stocksResponse.data || []);
+
+                const triggered = Array.isArray(triggeredResponse.data.results)
+                    ? triggeredResponse.data.results
+                    : (triggeredResponse.data.results?.data || triggeredResponse.data || []);
 
                 setStats({
                     totalAlerts: alerts.length,

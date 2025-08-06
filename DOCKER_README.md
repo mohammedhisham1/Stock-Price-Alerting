@@ -189,9 +189,7 @@ For production deployment:
    EMAIL_HOST_USER=your-email@gmail.com
    EMAIL_HOST_PASSWORD=your-app-password
    
-   # Optional: External API keys
-   ALPHA_VANTAGE_API_KEY=your-api-key
-   POLYGON_API_KEY=your-api-key
+   
    ```
 
 ## Persistent Data

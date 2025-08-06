@@ -120,7 +120,7 @@ services:
     networks:
       - stock_alerting_network
     environment:
-      - REACT_APP_API_URL=http://localhost:8000
+      - REACT_APP_API_URL=/api
 
 volumes:
   postgres_data:
