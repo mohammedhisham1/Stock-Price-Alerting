@@ -24,5 +24,5 @@ urlpatterns = [
     path('api/auth/', include('authentication.urls')),
     path('api/stocks/', include('stocks.urls')),
     path('api/alerts/', include('alerts.urls')),
-    path('health/', health_check, name='health_check'),
+    path('api/health/', health_check, name='health_check'),
 ]

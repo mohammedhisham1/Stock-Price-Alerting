@@ -25,9 +25,27 @@ A Django-based backend system that monitors real-time stock prices and sends ale
 
 ## Quick Start
 
-### Prerequisites
+🚀 **Fastest way to run the project:**
 
-- Python 3.8+
+```cmd
+# Navigate to project directory
+cd e:\Stock-Price-Alerting
+
+# Start development environment with Docker
+.\docker-manage.bat dev
+```
+
+**Access the application:**
+- Frontend: http://localhost:3000 (in development)
+- Backend API: http://localhost:8000
+- Admin Panel: http://localhost:8000/admin (admin/admin123)
+
+📖 **For detailed instructions, see [HOW_TO_RUN.md](HOW_TO_RUN.md)**
+
+## Prerequisites
+
+- Docker Desktop installed and running
+- Git (optional, for cloning)
 - Redis server
 - PostgreSQL (optional, SQLite works for development)
 
