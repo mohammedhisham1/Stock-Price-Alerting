@@ -4,6 +4,8 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.template import Context, Template
 import logging
+from celery import group
+
 
 from .models import Alert, TriggeredAlert, NotificationTemplate
 from stocks.models import StockPrice
@@ -74,24 +76,28 @@ def evaluate_alert(alert_id):
             'error': str(e)
         }
 
-
 @shared_task
 def evaluate_all_alerts():
-    """Evaluate all active alerts"""
+    """Evaluate all active alerts concurrently"""
     try:
         active_alerts = Alert.objects.filter(is_active=True)
-        results = []
-        triggered_count = 0
-        
-        for alert in active_alerts:
-            result = evaluate_alert.apply_async(args=[alert.id])
-            results.append(result)
-            
-            if result.get('triggered'):
-                triggered_count += 1
-        
+        if not active_alerts.exists():
+            logger.info("No active alerts found.")
+            return {
+                'success': True,
+                'total_alerts': 0,
+                'triggered_count': 0,
+                'results': [],
+                'timestamp': timezone.now().isoformat()
+            }
+
+        tasks = group(evaluate_alert.s(alert.id) for alert in active_alerts)
+        results = tasks.apply_async().get()  # wait for all tasks to complete
+
+        triggered_count = sum(1 for result in results if result.get('triggered'))
+
         logger.info(f"Evaluated {len(active_alerts)} alerts, {triggered_count} triggered")
-        
+
         return {
             'success': True,
             'total_alerts': len(active_alerts),
@@ -99,7 +105,7 @@ def evaluate_all_alerts():
             'results': results,
             'timestamp': timezone.now().isoformat()
         }
-        
+
     except Exception as e:
         logger.error(f"Error evaluating all alerts: {e}")
         return {
