@@ -8,7 +8,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write('Fetching stock prices...')
         
-        result = fetch_all_stock_prices.delay().get()
+        result = fetch_all_stock_prices.delay()
         
         if result['success']:
             self.stdout.write(

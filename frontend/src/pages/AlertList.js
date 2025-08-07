@@ -231,7 +231,7 @@ const AlertList = () => {
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                                         <span>{getConditionIcon(alert.condition)}</span>
                                                         <span style={{ fontWeight: '500' }}>
-                                                            {alert.condition} {formatPrice(alert.target_price)}
+                                                            {alert.condition} {formatPrice(alert.threshold_price)}
                                                         </span>
                                                     </div>
                                                 </div>
@@ -334,7 +334,7 @@ const AlertList = () => {
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
                                                 <span>{getConditionIcon(alert.condition)}</span>
                                                 <span style={{ fontWeight: '500' }}>
-                                                    {alert.condition} {formatPrice(alert.target_price)}
+                                                    {alert.condition} {formatPrice(alert.threshold_price)}
                                                 </span>
                                             </div>
                                         </div>
@@ -434,3 +434,4 @@ const AlertList = () => {
 };
 
 export default AlertList;
+

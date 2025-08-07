@@ -35,7 +35,7 @@ const StockList = () => {
 
         try {
             const response = await stockAPI.getStockPrices(stock.id);
-            setPriceHistory(response.data.results || response.data);
+            setPriceHistory(response.data.data || response.data.results || response.data);
         } catch (error) {
             console.error('Error fetching price history:', error);
             setPriceHistory([]);

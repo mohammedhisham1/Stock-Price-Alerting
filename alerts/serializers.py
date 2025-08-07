@@ -97,7 +97,11 @@ class TriggeredAlertSerializer(serializers.ModelSerializer):
             'condition', 'threshold_price', 'trigger_price', 'triggered_at',
             'email_sent', 'email_sent_at', 'notification_error'
         ]
-        read_only_fields = '__all__'
+        read_only_fields = (
+            'id', 'alert', 'stock_symbol', 'stock_name', 'alert_type',
+            'condition', 'threshold_price', 'trigger_price', 'triggered_at',
+            'email_sent', 'email_sent_at', 'notification_error'
+        )
 
 
 class NotificationTemplateSerializer(serializers.ModelSerializer):

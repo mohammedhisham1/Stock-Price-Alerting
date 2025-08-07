@@ -8,7 +8,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write('Evaluating alerts...')
         
-        result = evaluate_all_alerts.delay().get()
+        result = evaluate_all_alerts.delay()
         
         if result['success']:
             self.stdout.write(

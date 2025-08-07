@@ -84,7 +84,7 @@ def evaluate_all_alerts():
         triggered_count = 0
         
         for alert in active_alerts:
-            result = evaluate_alert.apply_async(args=[alert.id]).get()
+            result = evaluate_alert.apply_async(args=[alert.id])
             results.append(result)
             
             if result.get('triggered'):

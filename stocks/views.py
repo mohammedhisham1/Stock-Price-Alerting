@@ -70,7 +70,7 @@ class StockViewSet(viewsets.ReadOnlyModelViewSet):
             prices = StockPrice.objects.filter(
                 stock=stock,
                 timestamp__gte=since
-            ).order_by('timestamp')
+            ).order_by('-timestamp')
             
             serializer = StockPriceSerializer(prices, many=True)
             
