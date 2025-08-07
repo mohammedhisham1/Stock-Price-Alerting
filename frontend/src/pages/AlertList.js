@@ -21,11 +21,18 @@ const AlertList = () => {
                 alertAPI.getTriggeredAlerts()
             ]);
 
-            setAlerts(alertsResponse.data.results || alertsResponse.data);
-            setTriggeredAlerts(triggeredResponse.data.results || triggeredResponse.data);
+            // Handle nested response structure
+            const alertsData = alertsResponse.data.results?.data || alertsResponse.data.data || alertsResponse.data.results || alertsResponse.data;
+            const triggeredData = triggeredResponse.data.results?.data || triggeredResponse.data.data || triggeredResponse.data.results || triggeredResponse.data;
+
+            setAlerts(Array.isArray(alertsData) ? alertsData : []);
+            setTriggeredAlerts(Array.isArray(triggeredData) ? triggeredData : []);
         } catch (error) {
             console.error('Error fetching alerts:', error);
             toast.error('Failed to fetch alerts');
+            // Set empty arrays on error to prevent filter errors
+            setAlerts([]);
+            setTriggeredAlerts([]);
         } finally {
             setLoading(false);
         }
@@ -39,7 +46,7 @@ const AlertList = () => {
         setDeletingAlert(alertId);
         try {
             await alertAPI.deleteAlert(alertId);
-            setAlerts(alerts.filter(alert => alert.id !== alertId));
+            setAlerts(Array.isArray(alerts) ? alerts.filter(alert => alert.id !== alertId) : []);
             toast.success('Alert deleted successfully');
         } catch (error) {
             console.error('Error deleting alert:', error);
@@ -96,8 +103,8 @@ const AlertList = () => {
         );
     }
 
-    const activeAlerts = alerts.filter(alert => alert.is_active);
-    const inactiveAlerts = alerts.filter(alert => !alert.is_active);
+    const activeAlerts = Array.isArray(alerts) ? alerts.filter(alert => alert.is_active) : [];
+    const inactiveAlerts = Array.isArray(alerts) ? alerts.filter(alert => !alert.is_active) : [];
 
     return (
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>

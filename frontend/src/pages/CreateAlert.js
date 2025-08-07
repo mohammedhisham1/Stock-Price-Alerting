@@ -9,10 +9,10 @@ const CreateAlert = () => {
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [formData, setFormData] = useState({
-        stock: '',
+        stock_symbol: '',
         alert_type: 'threshold',
         condition: 'above',
-        target_price: '',
+        threshold_price: '',
         duration_minutes: '',
         description: '',
         is_active: true
@@ -45,12 +45,12 @@ const CreateAlert = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!formData.stock) {
+        if (!formData.stock_symbol) {
             toast.error('Please select a stock');
             return;
         }
 
-        if (!formData.target_price || parseFloat(formData.target_price) <= 0) {
+        if (!formData.threshold_price || parseFloat(formData.threshold_price) <= 0) {
             toast.error('Please enter a valid target price');
             return;
         }
@@ -64,8 +64,10 @@ const CreateAlert = () => {
 
         try {
             const alertData = {
-                ...formData,
-                target_price: parseFloat(formData.target_price),
+                stock_symbol: formData.stock_symbol,
+                alert_type: formData.alert_type,
+                condition: formData.condition,
+                threshold_price: parseFloat(formData.threshold_price),
                 duration_minutes: formData.alert_type === 'duration' ? parseInt(formData.duration_minutes) : null
             };
 
@@ -112,8 +114,8 @@ const CreateAlert = () => {
                             📈 Select Stock *
                         </label>
                         <select
-                            name="stock"
-                            value={formData.stock}
+                            name="stock_symbol"
+                            value={formData.stock_symbol}
                             onChange={handleChange}
                             required
                             style={{
@@ -131,7 +133,7 @@ const CreateAlert = () => {
                         >
                             <option value="">Choose a stock to monitor</option>
                             {stocks.filter(stock => stock.is_active).map((stock) => (
-                                <option key={stock.id} value={stock.id}>
+                                <option key={stock.id} value={stock.symbol}>
                                     {stock.symbol} - {stock.name} ({stock.exchange})
                                 </option>
                             ))}
@@ -238,8 +240,8 @@ const CreateAlert = () => {
                             </label>
                             <input
                                 type="number"
-                                name="target_price"
-                                value={formData.target_price}
+                                name="threshold_price"
+                                value={formData.threshold_price}
                                 onChange={handleChange}
                                 required
                                 min="0"
@@ -289,7 +291,7 @@ const CreateAlert = () => {
                                 onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
                             />
                             <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.5rem' }}>
-                                Alert will trigger if the price stays {formData.condition} ${formData.target_price || 'X'} for this duration.
+                                Alert will trigger if the price stays {formData.condition} ${formData.threshold_price || 'X'} for this duration.
                             </p>
                         </div>
                     )}
@@ -341,7 +343,7 @@ const CreateAlert = () => {
                     </div>
 
                     {/* Alert Preview */}
-                    {formData.stock && formData.target_price && (
+                    {formData.stock_symbol && formData.threshold_price && (
                         <div style={{
                             padding: '1rem',
                             backgroundColor: '#eff6ff',
@@ -354,13 +356,13 @@ const CreateAlert = () => {
                             <p style={{ margin: 0, color: '#1e40af' }}>
                                 {formData.alert_type === 'threshold' ? (
                                     <>
-                                        Notify me when {stocks.find(s => s.id === parseInt(formData.stock))?.symbol || 'selected stock'}
-                                        goes {formData.condition} ${formData.target_price}
+                                        Notify me when {stocks.find(s => s.symbol === formData.stock_symbol)?.symbol || 'selected stock'}
+                                        goes {formData.condition} ${formData.threshold_price}
                                     </>
                                 ) : (
                                     <>
-                                        Notify me when {stocks.find(s => s.id === parseInt(formData.stock))?.symbol || 'selected stock'}
-                                        stays {formData.condition} ${formData.target_price} for {formData.duration_minutes || 'X'} minutes
+                                        Notify me when {stocks.find(s => s.symbol === formData.stock_symbol)?.symbol || 'selected stock'}
+                                        stays {formData.condition} ${formData.threshold_price} for {formData.duration_minutes || 'X'} minutes
                                     </>
                                 )}
                             </p>
