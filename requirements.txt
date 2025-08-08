@@ -12,3 +12,4 @@ APScheduler==3.10.4
 gunicorn==21.2.0
 dj-database-url==2.1.0
 setuptools==80.9.0
+whitenoise==6.5.0
