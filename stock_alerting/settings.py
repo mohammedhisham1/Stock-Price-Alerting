@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'django_celery_beat',
     'whitenoise',
+    'drf_spectacular',
 
     # Local apps
     'authentication',
@@ -155,6 +156,17 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+# DRF Spectacular Configuration
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Stock Price Alerting API',
+    'DESCRIPTION': 'An API for managing stock price alerts and monitoring',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'COMPONENT_SPLIT_REQUEST': True,
+    'SCHEMA_PATH_PREFIX': r'/api/',
 }
 
 # JWT Configuration
