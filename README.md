@@ -39,6 +39,9 @@ cd e:\Stock-Price-Alerting
 - Frontend: http://localhost:3000 (in development)
 - Backend API: http://localhost:8000
 - Admin Panel: http://localhost:8000/admin (admin/admin123)
+- **API Documentation**: 
+  - Swagger UI: http://localhost:8000/api/docs/
+  - ReDoc: http://localhost:8000/api/redoc/
 
 📖 **For detailed instructions, see [HOW_TO_RUN.md](HOW_TO_RUN.md)**
 
@@ -115,6 +118,13 @@ python manage.py runserver
 ```
 
 ## API Documentation
+
+📚 **Interactive API Documentation Available:**
+
+- **Swagger UI**: http://localhost:8000/api/docs/
+- **ReDoc**: http://localhost:8000/api/redoc/  
+- **OpenAPI Schema**: http://localhost:8000/api/schema/
+
 
 ### Authentication
 
