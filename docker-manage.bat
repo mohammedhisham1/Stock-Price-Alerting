@@ -42,7 +42,9 @@ goto end
 
 :dev
 echo [INFO] Starting development environment...
-docker-compose -f docker-compose.dev.yml up -d
+echo [INFO] Using main docker-compose.yml with development settings
+set DEBUG=True
+docker-compose up -d
 echo [INFO] Development environment started
 echo [INFO] Backend: http://localhost:8000
 echo [INFO] Database: localhost:5432
@@ -51,16 +53,17 @@ goto end
 
 :prod
 echo [INFO] Starting production environment...
+set DEBUG=False
 docker-compose up -d
 echo [INFO] Production environment started
-echo [INFO] Frontend: http://localhost
 echo [INFO] Backend API: http://localhost:8000
+echo [INFO] API Documentation: http://localhost:8000/api/docs/
+echo [INFO] Note: Frontend should be deployed to Vercel separately
 goto end
 
 :stop
 echo [INFO] Stopping all services...
 docker-compose down
-docker-compose -f docker-compose.dev.yml down
 echo [INFO] All services stopped
 goto end
 
@@ -70,7 +73,6 @@ set /p confirm="Are you sure? (y/N): "
 if /i "%confirm%"=="y" (
     echo [INFO] Cleaning up...
     docker-compose down -v --rmi all
-    docker-compose -f docker-compose.dev.yml down -v --rmi all
     docker system prune -f
     echo [INFO] Cleanup completed
 ) else (
@@ -79,18 +81,12 @@ if /i "%confirm%"=="y" (
 goto end
 
 :logs
-if "%2"=="dev" (
-    docker-compose -f docker-compose.dev.yml logs -f
-) else (
-    docker-compose logs -f
-)
+docker-compose logs -f
 goto end
 
 :status
 echo [INFO] Container Status:
 docker-compose ps
-echo.
-docker-compose -f docker-compose.dev.yml ps
 goto end
 
 :shell

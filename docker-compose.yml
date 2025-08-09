@@ -40,15 +40,15 @@ services:
     build: .
     container_name: stock_alerting_backend
     environment:
-      - DEBUG=False
-      - SECRET_KEY=your-secret-key-change-in-production
-      - DATABASE_URL=postgres://postgres:postgres@db:5432/stock_alerting
-      - REDIS_URL=redis://redis:6379/0
-      - DB_HOST=db
-      - DB_PORT=5432
-      - LOAD_SEED_DATA=true
-      - ALLOWED_HOSTS=localhost,127.0.0.1,backend,0.0.0.0
-      - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,http://localhost
+      - DEBUG=${DEBUG:-False}
+      - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production}
+      - DATABASE_URL=${DATABASE_URL:-postgres://postgres:postgres@db:5432/stock_alerting}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - TWELVE_DATA_API_KEY=${TWELVE_DATA_API_KEY:-}
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER:-}
+      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD:-}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost,127.0.0.1,backend,0.0.0.0}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-http://localhost:3000,https://your-frontend.vercel.app}
     volumes:
       - static_volume:/app/staticfiles
       - media_volume:/app/media
@@ -73,12 +73,13 @@ services:
     container_name: stock_alerting_celery
     command: celery -A stock_alerting worker -l info
     environment:
-      - DEBUG=False
-      - SECRET_KEY=your-secret-key-change-in-production
-      - DATABASE_URL=postgres://postgres:postgres@db:5432/stock_alerting
-      - REDIS_URL=redis://redis:6379/0
-      - DB_HOST=db
-      - DB_PORT=5432
+      - DEBUG=${DEBUG:-False}
+      - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production}
+      - DATABASE_URL=${DATABASE_URL:-postgres://postgres:postgres@db:5432/stock_alerting}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - TWELVE_DATA_API_KEY=${TWELVE_DATA_API_KEY:-}
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER:-}
+      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD:-}
     volumes:
       - .:/app
     depends_on:
@@ -94,12 +95,13 @@ services:
     container_name: stock_alerting_celery_beat
     command: celery -A stock_alerting beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
     environment:
-      - DEBUG=False
-      - SECRET_KEY=your-secret-key-change-in-production
-      - DATABASE_URL=postgres://postgres:postgres@db:5432/stock_alerting
-      - REDIS_URL=redis://redis:6379/0
-      - DB_HOST=db
-      - DB_PORT=5432
+      - DEBUG=${DEBUG:-False}
+      - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production}
+      - DATABASE_URL=${DATABASE_URL:-postgres://postgres:postgres@db:5432/stock_alerting}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - TWELVE_DATA_API_KEY=${TWELVE_DATA_API_KEY:-}
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER:-}
+      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD:-}
     volumes:
       - .:/app
     depends_on:
@@ -108,19 +110,6 @@ services:
       - backend
     networks:
       - stock_alerting_network
-
-  # React Frontend
-  frontend:
-    build: ./frontend
-    container_name: stock_alerting_frontend
-    ports:
-      - "80:80"
-    depends_on:
-      - backend
-    networks:
-      - stock_alerting_network
-    environment:
-      - REACT_APP_API_URL=/api
 
 volumes:
   postgres_data:
