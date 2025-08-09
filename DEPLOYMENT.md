@@ -81,7 +81,7 @@ TWELVE_DATA_API_KEY=your-api-key
 EMAIL_HOST_USER=your-gmail@gmail.com
 EMAIL_HOST_PASSWORD=your-app-password
 ALLOWED_HOSTS=your-ec2-ip,your-domain.com
-CORS_ALLOWED_ORIGINS=https://your-app.vercel.app
+CORS_ALLOWED_ORIGINS=https://stock-price-alerting.vercel.app/
 ```
 
 ### Frontend (Vercel):
