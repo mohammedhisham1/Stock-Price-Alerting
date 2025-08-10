@@ -171,6 +171,24 @@ static/
 
 # Log files
 *.log
+django.log
+
+# Database files
+db.sqlite3
+*.db
+
+# Celery files
+celerybeat-schedule
+celerybeat.pid
+
+# Test files
+test-*.html
+*-test.html
+
+# Generated directories
+staticfiles/
+venv/
+.venv/
 
 # Secret files
 secrets/

@@ -1,24 +1,4 @@
 services:
-  # PostgreSQL Database
-  db:
-    image: postgres:15-alpine
-    container_name: stock_alerting_db
-    environment:
-      POSTGRES_DB: stock_alerting
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    networks:
-      - stock_alerting_network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   # Redis for Celery
   redis:
     image: redis:7-alpine
@@ -42,6 +22,11 @@ services:
     environment:
       - DEBUG=${DEBUG:-False}
       - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production}
+      - DB_NAME=${DB_NAME:-}
+      - DB_USER=${DB_USER:-}
+      - DB_PASSWORD=${DB_PASSWORD:-}
+      - DB_HOST=${DB_HOST:-}
+      - DB_PORT=${DB_PORT:-5432}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
       - TWELVE_DATA_API_KEY=${TWELVE_DATA_API_KEY:-}
       - EMAIL_HOST_USER=${EMAIL_HOST_USER:-}
@@ -54,8 +39,6 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      db:
-        condition: service_healthy
       redis:
         condition: service_healthy
     networks:
@@ -74,6 +57,11 @@ services:
     environment:
       - DEBUG=${DEBUG:-False}
       - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production}
+      - DB_NAME=${DB_NAME:-}
+      - DB_USER=${DB_USER:-}
+      - DB_PASSWORD=${DB_PASSWORD:-}
+      - DB_HOST=${DB_HOST:-}
+      - DB_PORT=${DB_PORT:-5432}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
       - TWELVE_DATA_API_KEY=${TWELVE_DATA_API_KEY:-}
       - EMAIL_HOST_USER=${EMAIL_HOST_USER:-}
@@ -81,7 +69,6 @@ services:
     volumes:
       - .:/app
     depends_on:
-      - db
       - redis
       - backend
     networks:
@@ -95,6 +82,11 @@ services:
     environment:
       - DEBUG=${DEBUG:-False}
       - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production}
+      - DB_NAME=${DB_NAME:-}
+      - DB_USER=${DB_USER:-}
+      - DB_PASSWORD=${DB_PASSWORD:-}
+      - DB_HOST=${DB_HOST:-}
+      - DB_PORT=${DB_PORT:-5432}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
       - TWELVE_DATA_API_KEY=${TWELVE_DATA_API_KEY:-}
       - EMAIL_HOST_USER=${EMAIL_HOST_USER:-}
@@ -102,14 +94,12 @@ services:
     volumes:
       - .:/app
     depends_on:
-      - db
       - redis
       - backend
     networks:
       - stock_alerting_network
 
 volumes:
-  postgres_data:
   redis_data:
   static_volume:
   media_volume:
