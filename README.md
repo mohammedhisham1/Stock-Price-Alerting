@@ -4,24 +4,46 @@ A Django-based backend system that monitors real-time stock prices and sends ale
 
 ## Features
 
-- **Real-time Stock Monitoring**: Fetches stock prices for 10 predefined companies using free APIs
+- **Real-time Stock Monitoring**: Fetches stock prices for 10 predefined companies using free API
 - **Smart Alert System**: 
   - Threshold alerts (price above/below a value)
   - Duration alerts (price condition maintained for specified time)
 - **Email Notifications**: Gmail SMTP integration for alert notifications
-- **REST API**: Full CRUD operations with JWT authentication
+- **REST API**: CRUD operations with JWT authentication
 - **Background Tasks**: Automated price fetching and alert evaluation
-- **AWS Deployment Ready**: Configured for AWS Free Tier deployment
 
 ## Tech Stack
 
 - **Backend**: Django 4.2.7
-- **Database**: PostgreSQL (with SQLite fallback)
+- **Database**: PostgreSQL 
 - **Authentication**: JWT (djangorestframework-simplejwt)
 - **Task Scheduling**: Celery + Redis
-- **API Source**: Twelve Data (free tier)
+- **API Source**: Twelve Data
 - **Email**: Gmail SMTP
-- **Deployment**: AWS EC2
+- **Deployment**: AWS EC2 + Vercel
+- **Containerization**: Docker
+
+## Project Structure
+
+```
+Stock-Price-Alerting/
+├── 🐳 Docker Configuration
+│   ├── Dockerfile
+│   ├── docker-compose.yml
+│   ├── docker-entrypoint.sh
+│   └── deploy-aws.sh
+├── 🚀 Django Backend
+│   ├── stock_alerting/        # Main Django project
+│   ├── authentication/       # User management
+│   ├── stocks/               # Stock data & services
+│   ├── alerts/               # Alert system
+│   └── manage.py
+├── ⚛️ React Frontend
+│   └── frontend/             # React app (deploy to Vercel)
+└── 📚 Documentation
+    ├── README.md
+
+```
 
 ## Quick Start
 
@@ -36,27 +58,71 @@ cd e:\Stock-Price-Alerting
 ```
 
 **Access the application:**
-- Frontend: http://localhost:3000 (in development)
 - Backend API: http://localhost:8000
 - Admin Panel: http://localhost:8000/admin (admin/admin123)
 - **API Documentation**: 
   - Swagger UI: http://localhost:8000/api/docs/
   - ReDoc: http://localhost:8000/api/redoc/
 
-📖 **For detailed instructions, see [HOW_TO_RUN.md](HOW_TO_RUN.md)**
 
 ## Prerequisites
 
+**For Docker Development (Recommended):**
 - Docker Desktop installed and running
-- Git (optional, for cloning)
-- Redis server
-- PostgreSQL (optional, SQLite works for development)
+- Git (for cloning)
 
-### Installation
+**For Manual Setup:**
+- Python 3.8+
+- Redis server
+- PostgreSQL (or use SQLite for development)
+
+### Docker Setup (Recommended)
+
+Simple Docker commands for easy deployment:
+
+1. **Create your environment file**
+```bash
+cp .env.example .env
+# Edit .env with your configuration
+```
+
+2. **Start the application (production)**
+```bash
+docker-compose up -d
+```
+
+3. **Start with logs visible**
+```bash
+docker-compose up
+```
+
+4. **Stop the application**
+```bash
+docker-compose down
+```
+
+5. **Rebuild after code changes**
+```bash
+docker-compose up --build
+```
+
+The application will be available at:
+- Backend API: http://localhost:8000
+- API Documentation: http://localhost:8000/api/docs/
+
+### Docker Services
+- **backend**: Django API server (port 8000)
+- **celery**: Background task worker  
+- **celery-beat**: Task scheduler
+- **redis**: Message broker and cache
+
+### Local Development Installation
+
+For development without Docker:
 
 1. **Clone the repository**
 ```bash
-git clone <repository-url>
+git clone https://github.com/mohammedhisham1/Stock-Price-Alerting.git
 cd Stock-Price-Alerting
 ```
 
@@ -77,12 +143,33 @@ pip install -r requirements.txt
 4. **Environment Configuration**
 Create a `.env` file in the root directory:
 ```env
+# Django Configuration
 SECRET_KEY=your-secret-key-here
 DEBUG=True
+ALLOWED_HOSTS=localhost,127.0.0.1
+
+# Database Configuration (for AWS RDS)
+DB_NAME=stockalertingdb
+DB_USER=your-db-user
+DB_PASSWORD=your-db-password
+DB_HOST=your-rds-endpoint.region.rds.amazonaws.com
+DB_PORT=5432
+
+# For local development, Django will use SQLite automatically
+# if database connection fails
+
+# External API
 TWELVE_DATA_API_KEY=your-twelve-data-api-key
+
+# Email Configuration
 EMAIL_HOST_USER=your-gmail@gmail.com
 EMAIL_HOST_PASSWORD=your-app-password
+
+# Redis Configuration
 REDIS_URL=redis://localhost:6379/0
+
+# CORS Configuration (add your frontend URL)
+CORS_ALLOWED_ORIGINS=http://localhost:3000,https://your-frontend.vercel.app
 ```
 
 5. **Database Setup**
@@ -90,12 +177,12 @@ REDIS_URL=redis://localhost:6379/0
 python manage.py makemigrations
 python manage.py migrate
 python manage.py createsuperuser
-python manage.py loaddata seed_data.json
+python manage.py collectstatic
+python manage.py loaddata seed_data_fixed.json
 ```
 
 6. **Start Redis (required for Celery)**
 ```bash
-# Windows (if Redis is installed)
 redis-server
 # Or use Docker
 docker run -d -p 6379:6379 redis:alpine
@@ -254,84 +341,23 @@ Configure Gmail SMTP in your `.env` file:
 2. Generate an App Password for this application
 3. Use the App Password in `EMAIL_HOST_PASSWORD`
 
-## AWS Deployment
-
-### EC2 Deployment Steps
-
-1. **Launch EC2 Instance**
-   - Ubuntu 20.04 LTS
-   - t2.micro (Free Tier)
-   - Security group: HTTP (80), HTTPS (443), SSH (22)
-
-2. **Server Setup**
-```bash
-# Update system
-sudo apt update && sudo apt upgrade -y
-
-# Install Python and dependencies
-sudo apt install python3-pip python3-venv nginx postgresql postgresql-contrib redis-server -y
-
-# Create application user
-sudo adduser stockalert
-sudo usermod -aG sudo stockalert
-```
-
-3. **Application Deployment**
-```bash
-# Clone repository
-git clone <your-repo-url> /home/stockalert/app
-cd /home/stockalert/app
-
-# Setup virtual environment
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-
-# Configure environment
-cp .env.example .env
-# Edit .env with production values
-
-# Setup database
-python manage.py migrate
-python manage.py collectstatic --noinput
-```
-
-4. **Configure Services**
-
-Create systemd service files for:
-- Django application (gunicorn)
-- Celery worker
-- Celery beat
-
-5. **Configure Nginx**
-```nginx
-server {
-    listen 80;
-    server_name your-domain.com;
-
-    location /static/ {
-        alias /home/stockalert/app/staticfiles/;
-    }
-
-    location / {
-        proxy_pass http://127.0.0.1:8000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-}
-```
-
 ## Environment Variables
 
 | Variable | Description | Required |
 |----------|-------------|----------|
 | SECRET_KEY | Django secret key | Yes |
 | DEBUG | Debug mode (False for production) | Yes |
+| DB_NAME | Database name | Yes (Production) |
+| DB_USER | Database username | Yes (Production) |
+| DB_PASSWORD | Database password | Yes (Production) |
+| DB_HOST | Database host (RDS endpoint) | Yes (Production) |
+| DB_PORT | Database port | Yes (Production) |
 | TWELVE_DATA_API_KEY | Stock API key | Yes |
 | EMAIL_HOST_USER | Gmail address for notifications | Yes |
 | EMAIL_HOST_PASSWORD | Gmail app password | Yes |
 | REDIS_URL | Redis connection string | Yes |
 | ALLOWED_HOSTS | Comma-separated allowed hosts | Production |
+| CORS_ALLOWED_ORIGINS | Frontend URLs for CORS | Production |
 
 ## Testing
 
@@ -339,21 +365,6 @@ Run the test suite:
 ```bash
 python manage.py test
 ```
-
-Run with coverage:
-```bash
-pip install coverage
-coverage run --source='.' manage.py test
-coverage report
-```
-
-## API Rate Limits
-
-- **Twelve Data Free Tier**: 800 requests/day
-- **Stock Price Fetching**: Optimized to stay within limits
-- **Monitoring**: 10 stocks × 288 requests/day = 2,880 requests (requires paid plan)
-
-For production, consider upgrading to Twelve Data paid plan or implementing request batching.
 
 ## Contributing
 
@@ -367,11 +378,7 @@ For production, consider upgrading to Twelve Data paid plan or implementing requ
 
 MIT License - see LICENSE file for details.
 
-## Support
 
-For issues and questions:
-- Create an issue in the GitHub repository
-- Check the troubleshooting section below
 
 ## Troubleshooting
 
@@ -385,24 +392,3 @@ For issues and questions:
    - Verify Gmail app password
    - Check 2FA is enabled on Gmail account
 
-3. **Stock data not updating**
-   - Verify API key is valid
-   - Check API rate limits
-
-
-### Development Tips
-
-- Use SQLite for local development
-- Monitor Celery logs for task execution
-- Test email notifications with console backend first
-- Use Django admin for data inspection
-
-## Video Walkthrough
-
-[Link to 3-5 minute video demonstration will be added here]
-
-The video covers:
-- Main features demonstration
-- Alert logic explanation
-- Background task system
-- Deployment overview
