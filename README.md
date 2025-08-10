@@ -79,7 +79,6 @@ Create a `.env` file in the root directory:
 ```env
 SECRET_KEY=your-secret-key-here
 DEBUG=True
-DATABASE_URL=sqlite:///db.sqlite3
 TWELVE_DATA_API_KEY=your-twelve-data-api-key
 EMAIL_HOST_USER=your-gmail@gmail.com
 EMAIL_HOST_PASSWORD=your-app-password
@@ -328,7 +327,6 @@ server {
 |----------|-------------|----------|
 | SECRET_KEY | Django secret key | Yes |
 | DEBUG | Debug mode (False for production) | Yes |
-| DATABASE_URL | Database connection string | Yes |
 | TWELVE_DATA_API_KEY | Stock API key | Yes |
 | EMAIL_HOST_USER | Gmail address for notifications | Yes |
 | EMAIL_HOST_PASSWORD | Gmail app password | Yes |
@@ -391,9 +389,6 @@ For issues and questions:
    - Verify API key is valid
    - Check API rate limits
 
-4. **Database connection errors**
-   - Verify DATABASE_URL format
-   - Ensure PostgreSQL is running (if using PostgreSQL)
 
 ### Development Tips
 

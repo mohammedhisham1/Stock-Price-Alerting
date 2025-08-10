@@ -587,9 +587,6 @@ DEBUG=False
 SECRET_KEY=your-super-secret-production-key
 ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com
 
-# Database
-DATABASE_URL=postgres://user:password@host:5432/dbname
-
 # Email (for alerts)
 EMAIL_HOST=smtp.gmail.com
 EMAIL_HOST_USER=your-email@gmail.com

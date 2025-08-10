@@ -183,7 +183,6 @@ For production deployment:
    DEBUG=False
    SECRET_KEY=your-super-secret-production-key
    ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com
-   DATABASE_URL=postgres://user:password@db:5432/stock_alerting
    
    # Optional: Email configuration
    EMAIL_HOST_USER=your-email@gmail.com

@@ -75,13 +75,12 @@ REACT_APP_API_URL=https://your-aws-backend-url.com/api
 ```bash
 SECRET_KEY=your-production-secret-key
 DEBUG=False
-DATABASE_URL=postgres://user:pass@rds-endpoint:5432/dbname
 REDIS_URL=redis://elasticache-endpoint:6379/0
 TWELVE_DATA_API_KEY=your-api-key
 EMAIL_HOST_USER=your-gmail@gmail.com
 EMAIL_HOST_PASSWORD=your-app-password
 ALLOWED_HOSTS=your-ec2-ip,your-domain.com
-CORS_ALLOWED_ORIGINS=https://stock-price-alerting.vercel.app/
+CORS_ALLOWED_ORIGINS=https://stock-price-alerting.vercel.app
 ```
 
 ### Frontend (Vercel):
