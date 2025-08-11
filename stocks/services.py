@@ -88,6 +88,7 @@ def update_stock_price(symbol, quote_data):
             price=quote_data['price'],
             open_price=quote_data.get('open'),
             high_price=quote_data.get('high'),
+            close_price=quote_data['price'],
             low_price=quote_data.get('low'),
             volume=quote_data.get('volume'),
             timestamp=timezone.now()
