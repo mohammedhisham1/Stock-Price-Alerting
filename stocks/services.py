@@ -1,24 +1,53 @@
 import requests
 import logging
+import time
 from decimal import Decimal
 from django.conf import settings
 from django.utils import timezone
 from django.core.exceptions import ValidationError
+from django.core.cache import cache
 from .models import Stock, StockPrice, APIRequestLog
 
 logger = logging.getLogger(__name__)
 
 
 class StockDataService:
-    """Service class for fetching stock data from external APIs"""
+    """Service class for fetching stock data from external APIs with rate limiting"""
     
     def __init__(self):
         self.api_key = settings.TWELVE_DATA_API_KEY
         self.base_url = "https://api.twelvedata.com"
+        self.rate_limit_key = "twelvedata_rate_limit"
+        self.max_calls_per_minute = 7 
+    
+    def _check_rate_limit(self):
+        """Check and enforce rate limiting"""
+        now = timezone.now()
+        minute_key = f"{self.rate_limit_key}_{now.strftime('%Y%m%d_%H%M')}"
+        
+        current_calls = cache.get(minute_key, 0)
+        
+        if current_calls >= self.max_calls_per_minute:
+            logger.warning(f"Rate limit reached: {current_calls}/{self.max_calls_per_minute} calls this minute")
+            # Wait until next minute
+            seconds_to_wait = 60 - now.second + 1
+            logger.info(f"Waiting {seconds_to_wait} seconds for rate limit reset")
+            time.sleep(seconds_to_wait)
+            # Reset counter for new minute
+            new_minute_key = f"{self.rate_limit_key}_{timezone.now().strftime('%Y%m%d_%H%M')}"
+            cache.set(new_minute_key, 0, 60)
+            current_calls = 0
+        
+        # Increment counter
+        cache.set(minute_key, current_calls + 1, 60)
+        return True
     
     def fetch_real_time_price(self, symbol):
         """Fetch real-time price for a single stock"""
         try:
+            # Check rate limit before making request
+            self._check_rate_limit()
+            
             url = f"{self.base_url}/price"
             params = {
                 'symbol': symbol,
@@ -49,6 +78,9 @@ class StockDataService:
     def fetch_quote(self, symbol):
         """Fetch detailed quote information for a stock"""
         try:
+            # Check rate limit before making request
+            self._check_rate_limit()
+            
             url = f"{self.base_url}/quote"
             params = {
                 'symbol': symbol,
@@ -83,43 +115,34 @@ class StockDataService:
             return None
     
     def fetch_multiple_quotes(self, symbols):
-        """Fetch quotes for multiple symbols in a single request"""
+        """Fetch quotes for multiple symbols - use batch when possible, individual with rate limiting otherwise"""
         try:
-            symbols_str = ','.join(symbols)
-            url = f"{self.base_url}/quote"
-            params = {
-                'symbol': symbols_str,
-                'apikey': self.api_key
-            }
-            
-            # Log API request
-            self._log_api_request('quote_batch')
-            
-            response = requests.get(url, params=params, timeout=15)
-            response.raise_for_status()
-            
-            data = response.json()
+            # For free tier, batch requests might not work well, so use individual requests with rate limiting
             results = {}
             
-            # Handle both single and multiple symbol responses
-            if isinstance(data, dict):
-                if 'symbol' in data:
-                    # Single symbol response
-                    symbol = data['symbol']
-                    results[symbol] = self._parse_quote_data(data)
-                else:
-                    # Multiple symbols response
-                    for symbol, quote_data in data.items():
-                        if isinstance(quote_data, dict) and 'close' in quote_data:
-                            results[symbol] = self._parse_quote_data(quote_data)
+            logger.info(f"Fetching quotes for {len(symbols)} symbols with rate limiting")
             
+            for i, symbol in enumerate(symbols):
+                try:
+                    # Add delay between requests to respect rate limits
+                    if i > 0:
+                        time.sleep(10)  # 10 second delay between calls (6 calls per minute max)
+                    
+                    quote_data = self.fetch_quote(symbol)
+                    if quote_data:
+                        results[symbol] = quote_data
+                    else:
+                        logger.warning(f"No data retrieved for {symbol}")
+                        
+                except Exception as e:
+                    logger.error(f"Error fetching {symbol}: {e}")
+                    continue
+            
+            logger.info(f"Successfully fetched {len(results)} out of {len(symbols)} quotes")
             return results
             
-        except requests.RequestException as e:
-            logger.error(f"Batch API request failed: {e}")
-            return {}
-        except (ValueError, KeyError) as e:
-            logger.error(f"Invalid batch response data: {e}")
+        except Exception as e:
+            logger.error(f"Batch quote fetch failed: {e}")
             return {}
     
     def _parse_quote_data(self, data):

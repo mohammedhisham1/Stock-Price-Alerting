@@ -19,11 +19,11 @@ from celery.schedules import crontab
 app.conf.beat_schedule = {
     'fetch-stock-prices': {
         'task': 'stocks.tasks.fetch_all_stock_prices',
-        'schedule': crontab(minute='*/5'),  # Every 5 minutes
+        'schedule': crontab(minute='*/30'),  # Every 30 minutes (more reasonable for free API)
     },
     'evaluate-alerts': {
         'task': 'alerts.tasks.evaluate_all_alerts',
-        'schedule': crontab(minute='*/2'),  # Every 2 minutes
+        'schedule': crontab(minute='*/5'),  # Every 5 minutes (doesn't use API)
     },
     'cleanup-old-alerts': {
         'task': 'alerts.tasks.cleanup_old_triggered_alerts',
