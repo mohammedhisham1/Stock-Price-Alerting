@@ -150,9 +150,7 @@ import os
 
 STATIC_URL = 'static/'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-STATIC_ROOT = "/app/staticfiles"
-MEDIA_ROOT = "/app/media"
-
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 
 

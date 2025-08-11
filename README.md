@@ -21,17 +21,11 @@ A Django-based backend system that monitors real-time stock prices and sends ale
 - **API Source**: Twelve Data
 - **Email**: Gmail SMTP
 - **Deployment**: AWS EC2 + Vercel
-- **Containerization**: Docker
 
 ## Project Structure
 
 ```
 Stock-Price-Alerting/
-├── 🐳 Docker Configuration
-│   ├── Dockerfile
-│   ├── docker-compose.yml
-│   ├── docker-entrypoint.sh
-│   └── deploy-aws.sh
 ├── 🚀 Django Backend
 │   ├── stock_alerting/        # Main Django project
 │   ├── authentication/       # User management
@@ -53,8 +47,7 @@ Stock-Price-Alerting/
 # Navigate to project directory
 cd e:\Stock-Price-Alerting
 
-# Start development environment with Docker
-.\docker-manage.bat dev
+# For local development, see "Local Development Installation" section below
 ```
 
 **Access the application:**
@@ -67,58 +60,78 @@ cd e:\Stock-Price-Alerting
 
 ## Prerequisites
 
-**For Docker Development (Recommended):**
-- Docker Desktop installed and running
-- Git (for cloning)
-
-**For Manual Setup:**
+**For Local Development:**
 - Python 3.8+
 - Redis server
 - PostgreSQL (or use SQLite for development)
+- Git (for cloning)
 
-### Docker Setup (Recommended)
+### Local Development Setup
 
-Simple Docker commands for easy deployment:
+Step-by-step development setup:
 
-1. **Create your environment file**
+1. **Clone the repository**
+```bash
+git clone https://github.com/mohammedhisham1/Stock-Price-Alerting.git
+cd Stock-Price-Alerting
+```
+
+2. **Create virtual environment**
+```bash
+python -m venv venv
+# Windows
+venv\Scripts\activate
+# Linux/Mac
+source venv/bin/activate
+```
+
+3. **Install dependencies**
+```bash
+pip install -r requirements.txt
+```
+
+4. **Create environment file**
 ```bash
 cp .env.example .env
 # Edit .env with your configuration
 ```
 
-2. **Start the application (production)**
+5. **Database setup**
 ```bash
-docker-compose up -d
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py collectstatic --noinput
+python manage.py loaddata seed_data_fixed.json
 ```
 
-3. **Start with logs visible**
+6. **Start Redis (required for Celery)**
 ```bash
-docker-compose up
+redis-server
 ```
 
-4. **Stop the application**
+7. **Start Celery Worker (new terminal)**
 ```bash
-docker-compose down
+celery -A stock_alerting worker -l info
 ```
 
-5. **Rebuild after code changes**
+8. **Start Celery Beat (new terminal)**
 ```bash
-docker-compose up --build
+celery -A stock_alerting beat -l info
+```
+
+9. **Start Django development server**
+```bash
+python manage.py runserver
 ```
 
 The application will be available at:
 - Backend API: http://localhost:8000
 - API Documentation: http://localhost:8000/api/docs/
+- Admin Panel: http://localhost:8000/admin
 
-### Docker Services
-- **backend**: Django API server (port 8000)
-- **celery**: Background task worker  
-- **celery-beat**: Task scheduler
-- **redis**: Message broker and cache
+### Production Deployment
 
-### Local Development Installation
-
-For development without Docker:
+For production deployment on AWS EC2, see [`EC2_DEPLOYMENT.md`](EC2_DEPLOYMENT.md) for complete setup instructions.
 
 1. **Clone the repository**
 ```bash
@@ -184,8 +197,8 @@ python manage.py loaddata seed_data_fixed.json
 6. **Start Redis (required for Celery)**
 ```bash
 redis-server
-# Or use Docker
-docker run -d -p 6379:6379 redis:alpine
+# On Windows, you may need to install Redis from https://redis.io/download
+# Or use Redis on Windows from Microsoft: https://github.com/microsoftarchive/redis/releases
 ```
 
 7. **Start Celery Worker**
