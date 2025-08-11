@@ -2,6 +2,7 @@ from celery import shared_task
 from django.conf import settings
 from django.utils import timezone
 import logging
+import time
 from .models import Stock, StockPrice
 from .services import StockDataService, update_stock_price
 
@@ -42,7 +43,7 @@ def fetch_stock_price(symbol):
 
 @shared_task
 def fetch_all_stock_prices():
-    """Fetch prices for all active monitored stocks"""
+    """Fetch prices for all active monitored stocks with proper rate limiting"""
     try:
         active_stocks = Stock.objects.filter(is_active=True)
         symbols = list(active_stocks.values_list('symbol', flat=True))
@@ -57,16 +58,23 @@ def fetch_all_stock_prices():
         daily_requests = service.get_daily_request_count()
         logger.info(f"Daily API requests so far: {daily_requests}")
         
-        # Use batch request if possible, otherwise individual requests
+        # Use individual requests with proper rate limiting (no batch processing)
         results = []
+        successful_updates = 0
         
-        try:
-            # Try batch request first
-            batch_results = service.fetch_multiple_quotes(symbols)
-            
-            for symbol in symbols:
-                if symbol in batch_results and batch_results[symbol]:
-                    quote_data = batch_results[symbol]
+        logger.info(f"Fetching prices for {len(symbols)} stocks with rate limiting...")
+        
+        for i, symbol in enumerate(symbols):
+            try:
+                # Add 10-second delay between each request to respect rate limits
+                if i > 0:
+                    logger.info(f"Waiting 10 seconds before fetching {symbol}...")
+                    time.sleep(10)
+                
+                # Fetch quote for individual stock
+                quote_data = service.fetch_quote(symbol)
+                
+                if quote_data:
                     stock_price = update_stock_price(symbol, quote_data)
                     if stock_price:
                         results.append({
@@ -74,72 +82,29 @@ def fetch_all_stock_prices():
                             'price': float(stock_price.price),
                             'success': True
                         })
+                        successful_updates += 1
+                        logger.info(f"Successfully updated {symbol}: ${stock_price.price}")
                     else:
                         results.append({
                             'symbol': symbol,
                             'success': False,
-                            'error': 'Failed to update price'
+                            'error': 'Failed to update price in database'
                         })
                 else:
-                    # Fall back to individual request
-                    quote_data = service.fetch_quote(symbol)
-                    if quote_data:
-                        stock_price = update_stock_price(symbol, quote_data)
-                        if stock_price:
-                            results.append({
-                                'symbol': symbol,
-                                'price': float(stock_price.price),
-                                'success': True
-                            })
-                        else:
-                            results.append({
-                                'symbol': symbol,
-                                'success': False,
-                                'error': 'Failed to update price'
-                            })
-                    else:
-                        results.append({
-                            'symbol': symbol,
-                            'success': False,
-                            'error': 'Failed to fetch price'
-                        })
-        
-        except Exception as e:
-            logger.error(f"Batch request failed, falling back to individual requests: {e}")
-            
-            # Fall back to individual requests
-            for symbol in symbols:
-                try:
-                    quote_data = service.fetch_quote(symbol)
-                    if quote_data:
-                        stock_price = update_stock_price(symbol, quote_data)
-                        if stock_price:
-                            results.append({
-                                'symbol': symbol,
-                                'price': float(stock_price.price),
-                                'success': True
-                            })
-                        else:
-                            results.append({
-                                'symbol': symbol,
-                                'success': False,
-                                'error': 'Failed to update price'
-                            })
-                    else:
-                        results.append({
-                            'symbol': symbol,
-                            'success': False,
-                            'error': 'Failed to fetch price'
-                        })
-                except Exception as individual_error:
-                    logger.error(f"Individual request failed for {symbol}: {individual_error}")
                     results.append({
                         'symbol': symbol,
                         'success': False,
-                        'error': str(individual_error)
+                        'error': 'Failed to fetch price'
                     })
+                    
+            except Exception as e:
+                logger.error(f"Error processing {symbol}: {e}")
+                results.append({
+                    'symbol': symbol,
+                    'success': False,
+                    'error': str(e)
+                })
         
-        successful_updates = len([r for r in results if r['success']])
         logger.info(f"Updated prices for {successful_updates}/{len(symbols)} stocks")
         
         return {
