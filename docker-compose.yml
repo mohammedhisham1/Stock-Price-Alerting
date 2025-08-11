@@ -1,5 +1,4 @@
 services:
-  # Redis
   redis:
     image: redis:7-alpine
     container_name: stock_alerting_redis
@@ -10,14 +9,14 @@ services:
     volumes:
       - redis_data:/data
 
-  # Django Backend
   backend:
     build: .
     container_name: stock_alerting_backend
     env_file:
       - .env
     volumes:
-      - .:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
     ports:
       - "8000:8000"
     depends_on:
@@ -25,7 +24,6 @@ services:
     networks:
       - stock_alerting_network
 
-  # Celery Worker
   celery:
     build: .
     container_name: stock_alerting_celery
@@ -33,14 +31,14 @@ services:
     env_file:
       - .env
     volumes:
-      - .:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
     depends_on:
       - redis
       - backend
     networks:
       - stock_alerting_network
 
-  # Celery Beat (Scheduler)
   celery-beat:
     build: .
     container_name: stock_alerting_celery_beat
@@ -48,7 +46,8 @@ services:
     env_file:
       - .env
     volumes:
-      - .:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
     depends_on:
       - redis
       - backend
