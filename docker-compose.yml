@@ -10,7 +10,10 @@ services:
       - redis_data:/data
 
   backend:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: stock_alerting_image
     container_name: stock_alerting_backend
     env_file:
       - .env
@@ -25,7 +28,7 @@ services:
       - stock_alerting_network
 
   celery:
-    build: .
+    image: stock_alerting_image
     container_name: stock_alerting_celery
     command: celery -A stock_alerting worker -l info
     env_file:
@@ -40,7 +43,7 @@ services:
       - stock_alerting_network
 
   celery-beat:
-    build: .
+    image: stock_alerting_image
     container_name: stock_alerting_celery_beat
     command: celery -A stock_alerting beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
     env_file:
