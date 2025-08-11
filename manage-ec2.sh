@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Stock Price Alerting System - Amazon Linux EC2 Management Script
+# Stock Price Alerting System - Ubuntu EC2 Management Script
 # Usage: ./manage-ec2.sh [start|stop|restart|status|logs|update]
 
-PROJECT_DIR="/home/ec2-user/Stock-Price-Alerting"
+PROJECT_DIR="/home/ubuntu/Stock-Price-Alerting"
 VENV_PATH="$PROJECT_DIR/venv"
 
 cd $PROJECT_DIR

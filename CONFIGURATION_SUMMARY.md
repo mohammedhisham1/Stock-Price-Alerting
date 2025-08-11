@@ -1,8 +1,8 @@
-# 📋 EC2 + Vercel + RDS Configuration Summary
+# 📋 EC2 + Vercel + RDS Configuration Summary (Ubuntu)
 
 ## ✅ What I've Updated for Your Architecture
 
-### 1. **Backend Configuration (Django on EC2)**
+### 1. **Backend Configuration (Django on Ubuntu EC2)**
 
 **File: `stock_alerting/settings.py`**
 - ✅ Set `DEBUG=False` by default for production
@@ -34,9 +34,20 @@
 ### 3. **Deployment Scripts**
 
 **File: `ec2-setup.sh`**
-- ✅ Updated for backend-only deployment
-- ✅ Architecture-aware setup messaging
-- ✅ RDS-focused database configuration
+- ✅ Updated for Ubuntu Linux (apt instead of yum)
+- ✅ Ubuntu user paths (/home/ubuntu/ instead of /home/ec2-user/)
+- ✅ Ubuntu package management and service configuration
+- ✅ UFW firewall setup instead of firewalld
+- ✅ Nginx sites-available/sites-enabled structure
+
+**File: `manage-ec2.sh`**
+- ✅ Updated paths for Ubuntu user
+- ✅ Ubuntu-compatible service management
+
+**File: `DEPLOYMENT_GUIDE.md`**  
+- ✅ Ubuntu-specific instructions
+- ✅ SSH connection with ubuntu user
+- ✅ Ubuntu service management commands
 
 **File: `DEPLOYMENT_GUIDE.md`**  
 - ✅ Complete step-by-step deployment guide

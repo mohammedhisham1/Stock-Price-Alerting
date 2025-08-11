@@ -1,7 +1,7 @@
 # 🚀 Complete Deployment Guide
 
 **Architecture Overview:**
-- 🖥️ **Backend**: Django REST API on AWS EC2
+- 🖥️ **Backend**: Django REST API on AWS EC2 (Ubuntu Linux)
 - 🌐 **Frontend**: React app on Vercel  
 - 🗄️ **Database**: PostgreSQL on AWS RDS
 - 🔄 **Cache/Queue**: Redis on EC2
@@ -24,11 +24,19 @@
    - Allow inbound connection on port 5432 from EC2 security group
    - Source: EC2 security group ID
 
-### ✅ Step 2: Deploy Backend on EC2
+### ✅ Step 2: Deploy Backend on EC2 (Ubuntu)
 
 1. **Launch EC2 Instance** (see EC2_DEPLOYMENT.md for details)
+   - Use Ubuntu Server 22.04 LTS or 20.04 LTS
+   - Instance type: t3.medium or larger
+   - User: `ubuntu` (not `ec2-user`)
+
 2. **Clone and Setup:**
    ```bash
+   # Connect to Ubuntu instance
+   ssh -i your-key.pem ubuntu@your-ec2-public-ip
+   
+   # Clone and setup
    git clone https://github.com/yourusername/Stock-Price-Alerting.git
    cd Stock-Price-Alerting
    chmod +x ec2-setup.sh
@@ -37,7 +45,8 @@
 
 3. **Configure Environment Variables:**
    ```bash
-   nano .env
+   # Edit environment file (note: /home/ubuntu/ for Ubuntu)
+   nano /home/ubuntu/Stock-Price-Alerting/.env
    ```
    
    **Required Configuration:**
@@ -70,6 +79,8 @@
 
 4. **Initialize Database:**
    ```bash
+   # Navigate to project directory and activate virtual environment
+   cd /home/ubuntu/Stock-Price-Alerting
    source venv/bin/activate
    python manage.py migrate
    python manage.py createsuperuser
@@ -79,7 +90,13 @@
 
 5. **Start Services:**
    ```bash
+   # Update supervisor configuration and start services
+   sudo supervisorctl reread
+   sudo supervisorctl update
    sudo supervisorctl start stockalerting:*
+
+   # Start and enable Nginx
+   sudo systemctl enable nginx
    sudo systemctl start nginx
    ```
 

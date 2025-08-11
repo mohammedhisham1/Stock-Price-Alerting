@@ -1,12 +1,12 @@
 # 🚀 EC2 Backend Deployment - Stock Price Alerting
 
 **Deployment Architecture:**
-- 🖥️ **Backend**: Django REST API on AWS EC2 (Amazon Linux)
+- 🖥️ **Backend**: Django REST API on AWS EC2 (Ubuntu Linux)
 - 🌐 **Frontend**: React app deployed on Vercel
 - 🗄️ **Database**: PostgreSQL on AWS RDS
 - 🔄 **Cache/Queue**: Redis on EC2 for Celery tasks
 
-This guide will help you deploy the backend API on Amazon Linux EC2 instance.
+This guide will help you deploy the backend API on Ubuntu EC2 instance.
 
 ## Prerequisites
 
@@ -21,7 +21,7 @@ Before starting, ensure you have:
 
 ### 1. Launch EC2 Instance
 - **Instance Type**: t3.medium or larger (minimum t3.small)
-- **AMI**: Amazon Linux 2023 (recommended) or Amazon Linux 2
+- **AMI**: Ubuntu Server 22.04 LTS (recommended) or Ubuntu Server 20.04 LTS
 - **Storage**: 20GB GP3
 - **Security Groups**:
   - SSH (22) - Your IP
@@ -31,7 +31,7 @@ Before starting, ensure you have:
 
 ### 2. Connect to EC2
 ```bash
-ssh -i your-key.pem ec2-user@your-ec2-public-ipide- Amazon Linux
+ssh -i your-key.pem ubuntu@your-ec2-public-ipide- Amazon Linux
 
 This guide will help you deploy the Stock Price Alerting System directly on an Amazon Linux EC2 instance.
 
@@ -56,28 +56,32 @@ ssh -i your-key.pem ec2-user@your-ec2-public-ip
 
 ### 1. Update System
 ```bash
-sudo yum update -y
+sudo apt update && sudo apt upgrade -y
 ```
 
-### 2. Install Python 3.11+
+### 2. Install Python 3 and Development Tools
 ```bash
-# For Amazon Linux 2023
-sudo yum install -y python3.11 python3.11-pip python3.11-devel
+# Install Python 3 and pip
+sudo apt install -y python3 python3-pip python3-dev python3-venv
 
-# For Amazon Linux 2
-sudo amazon-linux-extras install python3.8
-sudo yum install -y python3-pip python3-devel
-
-# Set Python 3.11 as default (AL2023)
-sudo alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
-sudo alternatives --install /usr/bin/pip3 pip3 /usr/bin/pip3.11 1
+# Install development tools
+sudo apt install -y build-essential gcc g++ make
 ```
 
 ### 3. Install System Dependencies
 ```bash
-# Development tools
-sudo yum groupinstall -y "Development Tools"
-sudo yum install -y gcc gcc-c++ make
+# Database client and libraries
+sudo apt install -y postgresql-client libpq-dev
+
+# Web server and process management
+sudo apt install -y nginx supervisor
+
+# Redis server
+sudo apt install -y redis-server
+
+# Git and utilities  
+sudo apt install -y git curl wget htop tree
+```
 
 # Database client and libraries
 sudo yum install -y postgresql15-devel postgresql15

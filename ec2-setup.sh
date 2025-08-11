@@ -2,12 +2,13 @@
 
 # EC2 Backend Setup Script for Stock Price Alerting System
 # Architecture: EC2 Backend + Vercel Frontend + RDS Database
-# Run this script on a fresh Amazon Linux 2023 or Amazon Linux 2 EC2 instance
+# Run this script on a fresh Ubuntu 22.04 LTS or Ubuntu 20.04 LTS EC2 instance
 
 set -e
 
 echo "🚀 Starting EC2 Backend setup for Stock Price Alerting System..."
 echo "📊 Architecture: EC2 Backend + Vercel Frontend + RDS Database"
+echo "🐧 Operating System: Ubuntu Linux"
 
 # Colors for output
 RED='\033[0;31m'
@@ -32,51 +33,33 @@ print_error() {
     echo -e "${RED}❌ $1${NC}"
 }
 
-# Detect Amazon Linux version
-if grep -q "Amazon Linux 2023" /etc/os-release; then
-    AMAZON_LINUX_VERSION="2023"
+# Detect Ubuntu version
+UBUNTU_VERSION=$(lsb_release -rs)
+print_info "Detected Ubuntu $UBUNTU_VERSION"
 elif grep -q "Amazon Linux 2" /etc/os-release; then
-    AMAZON_LINUX_VERSION="2"
-else
-    print_error "Unsupported OS. This script is for Amazon Linux 2 or 2023."
-    exit 1
-fi
-
-print_status "Detected Amazon Linux $AMAZON_LINUX_VERSION"
-
 # Update system
 print_status "Updating system packages..."
-sudo yum update -y
+sudo apt update && sudo apt upgrade -y
 
-# Install Python based on AL version
-if [ "$AMAZON_LINUX_VERSION" = "2023" ]; then
-    print_status "Installing Python 3.11 for Amazon Linux 2023..."
-    sudo yum install -y python3.11 python3.11-pip python3.11-devel
-    sudo alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
-    sudo alternatives --install /usr/bin/pip3 pip3 /usr/bin/pip3.11 1
-else
-    print_status "Installing Python 3.8 for Amazon Linux 2..."
-    sudo amazon-linux-extras install python3.8 -y
-    sudo yum install -y python3-pip python3-devel
-fi
+# Install Python 3.11+ (Ubuntu 22.04 has 3.10, 20.04 has 3.8)
+print_status "Installing Python 3 and pip..."
+sudo apt install -y python3 python3-pip python3-dev python3-venv
 
 # Install system dependencies
 print_status "Installing system dependencies..."
-sudo yum groupinstall -y "Development Tools"
-sudo yum install -y gcc gcc-c++ make
+sudo apt install -y build-essential gcc g++ make
 
 # Database client
-if [ "$AMAZON_LINUX_VERSION" = "2023" ]; then
-    sudo yum install -y postgresql15-devel postgresql15 || sudo yum install -y postgresql-devel postgresql
-else
-    sudo yum install -y postgresql-devel postgresql
-fi
+print_status "Installing PostgreSQL client..."
+sudo apt install -y postgresql-client libpq-dev
 
-# Web server and process management
-sudo yum install -y nginx supervisor
+# Web server and process management  
+print_status "Installing Nginx and Supervisor..."
+sudo apt install -y nginx supervisor
 
 # Git and utilities
-sudo yum install -y git curl wget htop
+print_status "Installing utilities..."
+sudo apt install -y git curl wget htop tree
 
 # Redis Server
 print_status "Installing and configuring Redis..."
@@ -108,55 +91,55 @@ pip install gunicorn
 if [ ! -f ".env" ]; then
     print_status "Creating environment file..."
     cp .env.example .env
-    print_warning "IMPORTANT: Edit /home/ec2-user/Stock-Price-Alerting/.env with your configuration!"
+    print_warning "IMPORTANT: Edit /home/ubuntu/Stock-Price-Alerting/.env with your configuration!"
     print_warning "Required: DB credentials, API keys, email settings"
 fi
 
 # Create supervisor configuration
 print_status "Creating Supervisor configuration..."
 sudo mkdir -p /var/log/supervisor
-sudo tee /etc/supervisord.d/stockalerting.ini > /dev/null <<EOF
+sudo tee /etc/supervisor/conf.d/stockalerting.conf > /dev/null <<EOF
 [program:stockalerting_django]
-command=/home/ec2-user/Stock-Price-Alerting/venv/bin/gunicorn --bind 0.0.0.0:8000 --workers 3 --timeout 120 stock_alerting.wsgi:application
-directory=/home/ec2-user/Stock-Price-Alerting
-user=ec2-user
+command=/home/ubuntu/Stock-Price-Alerting/venv/bin/gunicorn --bind 0.0.0.0:8000 --workers 3 --timeout 120 stock_alerting.wsgi:application
+directory=/home/ubuntu/Stock-Price-Alerting
+user=ubuntu
 autostart=true
 autorestart=true
 redirect_stderr=true
 stdout_logfile=/var/log/supervisor/stockalerting_django.log
-environment=PATH="/home/ec2-user/Stock-Price-Alerting/venv/bin"
+environment=PATH="/home/ubuntu/Stock-Price-Alerting/venv/bin"
 
 [program:stockalerting_celery]
-command=/home/ec2-user/Stock-Price-Alerting/venv/bin/celery -A stock_alerting worker -l info
-directory=/home/ec2-user/Stock-Price-Alerting
-user=ec2-user
+command=/home/ubuntu/Stock-Price-Alerting/venv/bin/celery -A stock_alerting worker -l info
+directory=/home/ubuntu/Stock-Price-Alerting
+user=ubuntu
 autostart=true
 autorestart=true
 redirect_stderr=true
 stdout_logfile=/var/log/supervisor/stockalerting_celery.log
-environment=PATH="/home/ec2-user/Stock-Price-Alerting/venv/bin"
+environment=PATH="/home/ubuntu/Stock-Price-Alerting/venv/bin"
 
 [program:stockalerting_beat]
-command=/home/ec2-user/Stock-Price-Alerting/venv/bin/celery -A stock_alerting beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
-directory=/home/ec2-user/Stock-Price-Alerting
-user=ec2-user
+command=/home/ubuntu/Stock-Price-Alerting/venv/bin/celery -A stock_alerting beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+directory=/home/ubuntu/Stock-Price-Alerting
+user=ubuntu
 autostart=true
 autorestart=true
 redirect_stderr=true
 stdout_logfile=/var/log/supervisor/stockalerting_beat.log
-environment=PATH="/home/ec2-user/Stock-Price-Alerting/venv/bin"
+environment=PATH="/home/ubuntu/Stock-Price-Alerting/venv/bin"
 
 [group:stockalerting]
 programs=stockalerting_django,stockalerting_celery,stockalerting_beat
 EOF
 
-# Enable supervisord
-sudo systemctl enable supervisord
-sudo systemctl start supervisord
+# Enable supervisor
+sudo systemctl enable supervisor
+sudo systemctl start supervisor
 
 # Create Nginx configuration
 print_status "Creating Nginx configuration..."
-sudo tee /etc/nginx/conf.d/stockalerting.conf > /dev/null <<EOF
+sudo tee /etc/nginx/sites-available/stockalerting > /dev/null <<EOF
 server {
     listen 80;
     server_name _;
@@ -164,13 +147,13 @@ server {
     client_max_body_size 4G;
 
     location /static/ {
-        alias /home/ec2-user/Stock-Price-Alerting/staticfiles/;
+        alias /home/ubuntu/Stock-Price-Alerting/staticfiles/;
         expires 30d;
         add_header Cache-Control "public, immutable";
     }
 
     location /media/ {
-        alias /home/ec2-user/Stock-Price-Alerting/media/;
+        alias /home/ubuntu/Stock-Price-Alerting/media/;
         expires 30d;
         add_header Cache-Control "public, immutable";
     }
@@ -188,33 +171,21 @@ server {
 }
 EOF
 
+# Enable the site
+sudo ln -sf /etc/nginx/sites-available/stockalerting /etc/nginx/sites-enabled/
+sudo rm -f /etc/nginx/sites-enabled/default
+
 # Test Nginx configuration
 sudo nginx -t
 
-# Setup firewall
-print_status "Configuring firewall..."
-if command -v firewall-cmd &> /dev/null; then
-    sudo systemctl enable firewalld
-    sudo systemctl start firewalld
-    sudo firewall-cmd --permanent --add-service=ssh
-    sudo firewall-cmd --permanent --add-service=http
-    sudo firewall-cmd --permanent --add-service=https
-    sudo firewall-cmd --reload
-else
-    print_warning "firewalld not available, please configure security groups in AWS console"
-fi
-
-# Create Nginx configuration
-print_status "Creating Nginx configuration..."
-sudo tee /etc/nginx/sites-available/stockalerting > /dev/null <<EOF
-server {
-    listen 80;
-    server_name _;
-
-    client_max_body_size 4G;
-
-    location /static/ {
-        alias /home/ubuntu/Stock-Price-Alerting/staticfiles/;
+# Setup firewall (Ubuntu uses ufw)
+print_status "Configuring UFW firewall..."
+sudo ufw --force enable
+sudo ufw allow ssh
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw allow 8000/tcp
+print_status "Firewall configured"
         expires 30d;
         add_header Cache-Control "public, immutable";
     }
@@ -253,7 +224,7 @@ sudo ufw --force enable
 
 print_status "Base setup completed!"
 print_warning "NEXT STEPS:"
-print_warning "1. Edit .env file: nano /home/ec2-user/Stock-Price-Alerting/.env"
+print_warning "1. Edit .env file: nano /home/ubuntu/Stock-Price-Alerting/.env"
 print_warning "2. Configure database, API keys, and email settings"
 print_warning "3. Run: source venv/bin/activate && python manage.py migrate"
 print_warning "4. Run: python manage.py createsuperuser"

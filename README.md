@@ -38,9 +38,10 @@ A modern, scalable system for real-time stock monitoring and intelligent alertin
 - Deployed on Vercel
 
 **Infrastructure:**
-- AWS EC2 (Amazon Linux)
-- AWS RDS (PostgreSQL)
-- Native Redis deployment
+- **Backend**: Ubuntu EC2 with Nginx + Supervisor
+- **Database**: AWS RDS PostgreSQL  
+- **Frontend**: Vercel deployment
+- **Cache/Queue**: Redis on EC2
 
 ## 📁 Project Structure
 
