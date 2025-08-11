@@ -1,4 +1,37 @@
-# EC2 Deployment Guide- Amazon Linux
+# 🚀 EC2 Backend Deployment - Stock Price Alerting
+
+**Deployment Architecture:**
+- 🖥️ **Backend**: Django REST API on AWS EC2 (Amazon Linux)
+- 🌐 **Frontend**: React app deployed on Vercel
+- 🗄️ **Database**: PostgreSQL on AWS RDS
+- 🔄 **Cache/Queue**: Redis on EC2 for Celery tasks
+
+This guide will help you deploy the backend API on Amazon Linux EC2 instance.
+
+## Prerequisites
+
+Before starting, ensure you have:
+- ✅ AWS account with EC2, RDS access
+- ✅ Vercel account for frontend deployment  
+- ✅ Domain name (optional but recommended)
+- ✅ TwelveData API key for stock data
+- ✅ Gmail account with App Password for email alerts
+
+## 🚀 EC2 Instance Setup
+
+### 1. Launch EC2 Instance
+- **Instance Type**: t3.medium or larger (minimum t3.small)
+- **AMI**: Amazon Linux 2023 (recommended) or Amazon Linux 2
+- **Storage**: 20GB GP3
+- **Security Groups**:
+  - SSH (22) - Your IP
+  - HTTP (80) - Anywhere
+  - HTTPS (443) - Anywhere
+  - Custom TCP (8000) - Anywhere (for Django API)
+
+### 2. Connect to EC2
+```bash
+ssh -i your-key.pem ec2-user@your-ec2-public-ipide- Amazon Linux
 
 This guide will help you deploy the Stock Price Alerting System directly on an Amazon Linux EC2 instance.
 

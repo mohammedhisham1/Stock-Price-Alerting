@@ -1,53 +1,96 @@
-# Stock Price Alerting System
+# 📊 Stock Price Alerting System
 
-A Django-based backend system that monitors real-time stock prices and sends alerts to users when certain conditions are met using free APIs and tools.
+A modern, scalable system for real-time stock monitoring and intelligent alerting.
 
-## Features
+## 🏗️ Architecture
 
-- **Real-time Stock Monitoring**: Fetches stock prices for 10 predefined companies using free API
-- **Smart Alert System**: 
-  - Threshold alerts (price above/below a value)
-  - Duration alerts (price condition maintained for specified time)
-- **Email Notifications**: Gmail SMTP integration for alert notifications
-- **REST API**: CRUD operations with JWT authentication
-- **Background Tasks**: Automated price fetching and alert evaluation
+**Production Deployment:**
+- 🖥️ **Backend**: Django REST API on AWS EC2 
+- 🌐 **Frontend**: React SPA on Vercel
+- 🗄️ **Database**: PostgreSQL on AWS RDS
+- 🔄 **Cache/Queue**: Redis on EC2 for background tasks
 
-## Tech Stack
+## ✨ Features
 
-- **Backend**: Django 4.2.7
-- **Database**: PostgreSQL 
-- **Authentication**: JWT (djangorestframework-simplejwt)
-- **Task Scheduling**: Celery + Redis
-- **API Source**: Twelve Data
-- **Email**: Gmail SMTP
-- **Deployment**: AWS EC2 + Vercel
+- 📈 **Real-time Stock Monitoring**: Tracks 10+ predefined companies using TwelveData API
+- 🚨 **Smart Alert System**: 
+  - Threshold alerts (price above/below target)
+  - Duration alerts (condition maintained over time)
+- 📧 **Email Notifications**: Instant Gmail alerts when conditions are met
+- 🔐 **Secure REST API**: JWT authentication with comprehensive endpoints
+- ⚡ **Background Processing**: Celery + Redis for automated price fetching
+- 📱 **Responsive Frontend**: Modern React interface with real-time updates
+- 📚 **API Documentation**: Auto-generated docs with drf-spectacular
 
-## Project Structure
+## 🛠️ Tech Stack
+
+**Backend:**
+- Django 4.2.7 + Django REST Framework
+- PostgreSQL database
+- JWT authentication
+- Celery + Redis for background tasks
+- drf-spectacular for API documentation
+
+**Frontend:**
+- React with modern hooks
+- Axios for API communication
+- Bootstrap for responsive design
+- Deployed on Vercel
+
+**Infrastructure:**
+- AWS EC2 (Amazon Linux)
+- AWS RDS (PostgreSQL)
+- Native Redis deployment
+
+## 📁 Project Structure
 
 ```
 Stock-Price-Alerting/
-├── 🚀 Django Backend
-│   ├── stock_alerting/        # Main Django project
-│   ├── authentication/       # User management
+├── �️ Backend (Django REST API)
+│   ├── stock_alerting/        # Main project settings
+│   ├── authentication/       # User management & JWT
 │   ├── stocks/               # Stock data & services
-│   ├── alerts/               # Alert system
+│   ├── alerts/               # Alert system & notifications
+│   ├── requirements.txt      # Python dependencies
 │   └── manage.py
-├── ⚛️ React Frontend
-│   └── frontend/             # React app (deploy to Vercel)
+├── 🌐 Frontend (React SPA)
+│   ├── src/
+│   │   ├── components/       # Reusable components
+│   │   ├── pages/           # Application pages
+│   │   └── services/        # API services
+│   ├── package.json
+│   └── vercel.json          # Vercel deployment config
+├── � Deployment
+│   ├── ec2-setup.sh         # Automated EC2 setup
+│   ├── manage-ec2.sh        # EC2 management script
+│   ├── EC2_DEPLOYMENT.md    # Detailed EC2 guide
+│   └── DEPLOYMENT_GUIDE.md  # Complete deployment guide
 └── 📚 Documentation
-    ├── README.md
 
+## 🚀 Quick Deployment
+
+**For production deployment (EC2 + Vercel + RDS):**
+
+1. **📖 Read the Complete Guide**: See `DEPLOYMENT_GUIDE.md`
+2. **🖥️ Deploy Backend on EC2**: Follow `EC2_DEPLOYMENT.md`
+3. **🌐 Deploy Frontend on Vercel**: Use provided `vercel.json`
+
+**One-command EC2 setup:**
+```bash
+git clone https://github.com/yourusername/Stock-Price-Alerting.git
+cd Stock-Price-Alerting
+chmod +x ec2-setup.sh && ./ec2-setup.sh
 ```
 
-## Quick Start
+## 🔗 Live Access Points
 
-🚀 **Fastest way to run the project:**
+After deployment, access your application at:
 
-```cmd
-# Navigate to project directory
-cd e:\Stock-Price-Alerting
-
-# For local development, see "Local Development Installation" section below
+- 🌐 **Frontend**: `https://your-app.vercel.app`
+- 🖥️ **API**: `http://your-ec2-ip:8000/api/`  
+- 📚 **API Docs**: `http://your-ec2-ip:8000/api/docs/`
+- ⚙️ **Admin**: `http://your-ec2-ip:8000/admin/`
+- ❤️ **Health**: `http://your-ec2-ip:8000/api/health/`
 ```
 
 **Access the application:**

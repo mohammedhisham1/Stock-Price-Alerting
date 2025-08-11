@@ -1,20 +1,27 @@
 #!/bin/bash
 
-# EC2 Setup Script for Stock Price Alerting System - Amazon Linux
+# EC2 Backend Setup Script for Stock Price Alerting System
+# Architecture: EC2 Backend + Vercel Frontend + RDS Database
 # Run this script on a fresh Amazon Linux 2023 or Amazon Linux 2 EC2 instance
 
 set -e
 
-echo "🚀 Starting EC2 setup for Stock Price Alerting System (Amazon Linux)..."
+echo "🚀 Starting EC2 Backend setup for Stock Price Alerting System..."
+echo "📊 Architecture: EC2 Backend + Vercel Frontend + RDS Database"
 
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 print_status() {
     echo -e "${GREEN}✅ $1${NC}"
+}
+
+print_info() {
+    echo -e "${BLUE}ℹ️ $1${NC}"
 }
 
 print_warning() {
