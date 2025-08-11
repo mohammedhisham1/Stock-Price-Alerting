@@ -24,7 +24,11 @@ class Alert(models.Model):
     alert_type = models.CharField(max_length=20, choices=ALERT_TYPES)
     condition = models.CharField(max_length=10, choices=CONDITIONS)
     threshold_price = models.DecimalField(max_digits=10, decimal_places=2)
-    duration_minutes = models.IntegerField(null=True, blank=True, help_text="Required for duration alerts")
+    duration_minutes = models.PositiveIntegerField(
+        null=True, 
+        blank=True, 
+        help_text="Required for duration alerts (minimum 1 minute)"
+    )
     
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -36,15 +40,30 @@ class Alert(models.Model):
     
     class Meta:
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['is_active', 'stock'], name='alert_active_stock_idx'),
+            models.Index(fields=['user', 'is_active'], name='alert_user_active_idx'),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'stock', 'alert_type', 'condition', 'threshold_price'],
+                condition=models.Q(is_active=True),
+                name='unique_active_alert_per_user_stock_condition'
+            )
+        ]
     
     def __str__(self):
         duration_str = f" for {self.duration_minutes}min" if self.alert_type == 'duration' else ""
         return f"{self.user.username}: {self.stock.symbol} {self.condition} ${self.threshold_price}{duration_str}"
     
     def clean(self):
+        """Validate model fields"""
         from django.core.exceptions import ValidationError
-        if self.alert_type == 'duration' and not self.duration_minutes:
-            raise ValidationError("Duration minutes is required for duration alerts")
+        if self.alert_type == 'duration':
+            if not self.duration_minutes:
+                raise ValidationError("Duration minutes is required for duration alerts")
+            if self.duration_minutes < 1:
+                raise ValidationError("Duration must be at least 1 minute")
         if self.alert_type == 'threshold' and self.duration_minutes:
             self.duration_minutes = None
     
@@ -59,6 +78,10 @@ class Alert(models.Model):
         elif self.condition == 'below':
             return current_price < self.threshold_price
         return False
+    
+    def get_condition_display_text(self):
+        """Get human-readable condition text"""
+        return f"goes {self.condition} ${self.threshold_price}"
     
     def should_trigger(self, current_price):
         """Determine if the alert should be triggered"""

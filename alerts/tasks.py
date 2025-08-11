@@ -18,9 +18,9 @@ def evaluate_alert(alert_id):
     """Evaluate a single alert"""
     try:
         alert = Alert.objects.get(id=alert_id, is_active=True)
-        latest_price = StockPrice.get_latest_price(alert.stock.symbol)
+        current_price = alert.stock.current_price
         
-        if latest_price is None:
+        if current_price is None:
             logger.warning(f"No price data available for {alert.stock.symbol}")
             return {
                 'alert_id': alert_id,
@@ -28,13 +28,13 @@ def evaluate_alert(alert_id):
                 'error': 'No price data available'
             }
         
-        should_trigger = alert.should_trigger(latest_price)
+        should_trigger = alert.should_trigger(current_price)
         
         if should_trigger:
             # Create triggered alert record
             triggered_alert = TriggeredAlert.objects.create(
                 alert=alert,
-                trigger_price=latest_price
+                trigger_price=current_price
             )
             
             # Send notification
@@ -50,7 +50,7 @@ def evaluate_alert(alert_id):
                 'alert_id': alert_id,
                 'success': True,
                 'triggered': True,
-                'trigger_price': float(latest_price),
+                'trigger_price': float(current_price),
                 'triggered_alert_id': triggered_alert.id
             }
         
@@ -58,7 +58,7 @@ def evaluate_alert(alert_id):
             'alert_id': alert_id,
             'success': True,
             'triggered': False,
-            'current_price': float(latest_price)
+            'current_price': float(current_price)
         }
         
     except Alert.DoesNotExist:

@@ -1,11 +1,10 @@
 import time
 import logging
-from decimal import Decimal
 from celery import shared_task
 from django.utils import timezone
 from datetime import timedelta
 from .models import Stock, StockPrice
-from alerts.models import Alert, TriggeredAlert
+from alerts.models import TriggeredAlert
 from .services import StockDataService, update_stock_price
 
 logger = logging.getLogger(__name__)
@@ -67,66 +66,7 @@ def fetch_all_stock_prices():
     }
 
 
-@shared_task
-def evaluate_price_alerts():
-    """Check all active alerts and send notifications if conditions are met"""
-    try:
-        active_alerts = Alert.objects.filter(
-            is_active=True,
-            stock__is_active=True
-        ).select_related('stock', 'user')
-        
-        if not active_alerts.exists():
-            logger.info("No active alerts to evaluate")
-            return {"success": True, "message": "No active alerts"}
-        
-        triggered_count = 0
-        
-        for alert in active_alerts:
-            try:
-                current_price = alert.stock.current_price
-                
-                if not current_price:
-                    logger.warning(f"No current price for {alert.stock.symbol}")
-                    continue
-                
-                # Check if alert condition is met
-                should_trigger = False
-                
-                if alert.condition == 'above' and current_price >= alert.threshold_price:
-                    should_trigger = True
-                elif alert.condition == 'below' and current_price <= alert.threshold_price:
-                    should_trigger = True
-                
-                if should_trigger:
-                    # Create triggered alert record
-                    TriggeredAlert.objects.create(
-                        alert=alert,
-                        trigger_price=current_price
-                    )
-                    
-                    # Deactivate the alert (one-time trigger)
-                    alert.is_active = False
-                    alert.save()
-                    
-                    triggered_count += 1
-                    logger.info(f"🔔 Triggered alert for {alert.stock.symbol}: ${current_price}")
-                
-            except Exception as e:
-                logger.error(f"Error evaluating alert for {alert.stock.symbol}: {e}")
-                continue
-        
-        logger.info(f"Evaluated alerts: {triggered_count} triggered")
-        
-        return {
-            "success": True,
-            "evaluated": active_alerts.count(),
-            "triggered": triggered_count
-        }
-        
-    except Exception as e:
-        logger.error(f"Alert evaluation failed: {e}")
-        return {"success": False, "error": str(e)}
+
 
 
 @shared_task

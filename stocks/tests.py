@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 from decimal import Decimal
 from unittest.mock import patch, MagicMock
+import requests
 
 from stocks.models import Stock, StockPrice
 from stocks.services import StockDataService, update_stock_price, initialize_monitored_stocks
@@ -44,20 +45,14 @@ class StockPriceModelTest(TestCase):
         self.assertEqual(self.stock_price.price, Decimal('150.00'))
         self.assertEqual(self.stock_price.stock, self.stock)
     
-    def test_get_latest_price(self):
-        # Create another price record
-        StockPrice.objects.create(
-            stock=self.stock,
-            price=Decimal('155.00'),
-            timestamp=timezone.now()
-        )
+    def test_latest_price_via_current_price_field(self):
+        # Test that we can get current price from Stock model
+        self.stock.current_price = Decimal('155.00')
+        self.stock.save()
         
-        latest_price = StockPrice.get_latest_price('AAPL')
-        self.assertEqual(latest_price, Decimal('155.00'))
-    
-    def test_get_latest_price_nonexistent_stock(self):
-        latest_price = StockPrice.get_latest_price('NONEXISTENT')
-        self.assertIsNone(latest_price)
+        # Reload from database
+        stock = Stock.objects.get(symbol='AAPL')
+        self.assertEqual(stock.current_price, Decimal('155.00'))
 
 
 class StockDataServiceTest(TestCase):
@@ -65,23 +60,30 @@ class StockDataServiceTest(TestCase):
         self.service = StockDataService()
     
     @patch('stocks.services.requests.get')
-    def test_fetch_real_time_price_success(self, mock_get):
+    def test_fetch_quote_success_simplified(self, mock_get):
         # Mock successful API response
         mock_response = MagicMock()
-        mock_response.json.return_value = {'price': '150.25'}
+        mock_response.json.return_value = {
+            'close': '150.25',
+            'open': '149.50',
+            'high': '151.00',
+            'low': '148.75',
+            'volume': '1000000'
+        }
         mock_response.raise_for_status.return_value = None
         mock_get.return_value = mock_response
         
-        price = self.service.fetch_real_time_price('AAPL')
-        self.assertEqual(price, Decimal('150.25'))
+        quote_data = self.service.fetch_quote('AAPL')
+        self.assertIsNotNone(quote_data)
+        self.assertEqual(quote_data['price'], Decimal('150.25'))
     
     @patch('stocks.services.requests.get')
-    def test_fetch_real_time_price_failure(self, mock_get):
-        # Mock failed API response
-        mock_get.side_effect = Exception('API Error')
+    def test_fetch_quote_failure(self, mock_get):
+        # Mock failed API response (RequestException)
+        mock_get.side_effect = requests.RequestException('API Error')
         
-        price = self.service.fetch_real_time_price('AAPL')
-        self.assertIsNone(price)
+        quote_data = self.service.fetch_quote('AAPL')
+        self.assertIsNone(quote_data)
     
     @patch('stocks.services.requests.get')
     def test_fetch_quote_success(self, mock_get):
