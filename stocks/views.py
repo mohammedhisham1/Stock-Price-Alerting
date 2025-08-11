@@ -9,7 +9,7 @@ import logging
 from .models import Stock, StockPrice
 from .serializers import StockSerializer, StockPriceSerializer, StockPriceHistorySerializer
 from .services import StockDataService, initialize_monitored_stocks
-from .tasks import fetch_stock_price, fetch_all_stock_prices
+from .tasks import fetch_all_stock_prices
 
 logger = logging.getLogger(__name__)
 
@@ -120,17 +120,27 @@ class StockViewSet(viewsets.ReadOnlyModelViewSet):
         try:
             stock = self.get_object()
             
-            # Trigger background task
-            task = fetch_stock_price.delay(stock.symbol)
+            # Use the service directly for immediate update
+            service = StockDataService()
+            quote_data = service.fetch_quote(stock.symbol)
             
-            return Response({
-                'success': True,
-                'message': f'Price refresh initiated for {stock.symbol}',
-                'task_id': task.id
-            })
+            if quote_data:
+                from .services import update_stock_price
+                update_stock_price(stock.symbol, quote_data)
+                
+                return Response({
+                    'success': True,
+                    'message': f'Price updated for {stock.symbol}',
+                    'price': str(quote_data['price'])
+                })
+            else:
+                return Response({
+                    'success': False,
+                    'error': 'Failed to fetch price data'
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
         except Exception as e:
-            logger.error(f"Error initiating price refresh for stock: {e}")
+            logger.error(f"Error refreshing price for stock: {e}")
             return Response({
                 'success': False,
                 'error': str(e)
@@ -171,15 +181,23 @@ class StockViewSet(viewsets.ReadOnlyModelViewSet):
                     'error': 'Admin access required'
                 }, status=status.HTTP_403_FORBIDDEN)
             
-            service = StockDataService()
-            daily_requests = service.get_daily_request_count()
+            # Get daily request count from APIRequestLog model
+            from .models import APIRequestLog
+            from django.utils import timezone
+            
+            today = timezone.now().date()
+            try:
+                logs = APIRequestLog.objects.filter(date=today)
+                daily_requests = sum(log.request_count for log in logs)
+            except Exception:
+                daily_requests = 0
             
             return Response({
                 'success': True,
                 'daily_requests': daily_requests,
                 'api_limit': 800,  # Twelve Data free tier limit
                 'remaining': max(0, 800 - daily_requests),
-                'date': timezone.now().date()
+                'date': today
             })
             
         except Exception as e:
