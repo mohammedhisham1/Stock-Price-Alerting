@@ -36,12 +36,12 @@ print_error() {
 # Detect Ubuntu version
 UBUNTU_VERSION=$(lsb_release -rs)
 print_info "Detected Ubuntu $UBUNTU_VERSION"
-elif grep -q "Amazon Linux 2" /etc/os-release; then
+
 # Update system
 print_status "Updating system packages..."
 sudo apt update && sudo apt upgrade -y
 
-# Install Python 3.11+ (Ubuntu 22.04 has 3.10, 20.04 has 3.8)
+# Install Python 3 and pip
 print_status "Installing Python 3 and pip..."
 sudo apt install -y python3 python3-pip python3-dev python3-venv
 
@@ -63,18 +63,18 @@ sudo apt install -y git curl wget htop tree
 
 # Redis Server
 print_status "Installing and configuring Redis..."
-sudo yum install -y redis
-sudo systemctl enable redis
-sudo systemctl start redis
+sudo apt install -y redis-server
+sudo systemctl enable redis-server
+sudo systemctl start redis-server
 
 # Clone repository (if not already present)
-if [ ! -d "/home/ec2-user/Stock-Price-Alerting" ]; then
+if [ ! -d "/home/ubuntu/Stock-Price-Alerting" ]; then
     print_status "Cloning repository..."
-    cd /home/ec2-user
+    cd /home/ubuntu
     git clone https://github.com/mohammedhisham1/Stock-Price-Alerting.git
 fi
 
-cd /home/ec2-user/Stock-Price-Alerting
+cd /home/ubuntu/Stock-Price-Alerting
 
 # Create virtual environment
 print_status "Creating Python virtual environment..."
@@ -186,41 +186,6 @@ sudo ufw allow 80/tcp
 sudo ufw allow 443/tcp
 sudo ufw allow 8000/tcp
 print_status "Firewall configured"
-        expires 30d;
-        add_header Cache-Control "public, immutable";
-    }
-
-    location /media/ {
-        alias /home/ubuntu/Stock-Price-Alerting/media/;
-        expires 30d;
-        add_header Cache-Control "public, immutable";
-    }
-
-    location / {
-        proxy_pass http://127.0.0.1:8000;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-        proxy_connect_timeout 60s;
-        proxy_send_timeout 60s;
-        proxy_read_timeout 60s;
-    }
-}
-EOF
-
-# Enable Nginx site
-sudo ln -sf /etc/nginx/sites-available/stockalerting /etc/nginx/sites-enabled/
-sudo rm -f /etc/nginx/sites-enabled/default
-
-# Test Nginx configuration
-sudo nginx -t
-
-# Setup firewall
-print_status "Configuring firewall..."
-sudo ufw allow ssh
-sudo ufw allow 'Nginx Full'
-sudo ufw --force enable
 
 print_status "Base setup completed!"
 print_warning "NEXT STEPS:"
