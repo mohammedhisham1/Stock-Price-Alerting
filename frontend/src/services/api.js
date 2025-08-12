@@ -72,6 +72,7 @@ export const stockAPI = {
     getStocks: () => api.get('/stocks/'),
     getStock: (id) => api.get(`/stocks/${id}/`),
     getStockPrices: (id) => api.get(`/stocks/${id}/price_history/`),
+    getCurrentPrices: () => api.get('/stocks/current_prices/'),
 };
 
 // Alert API calls

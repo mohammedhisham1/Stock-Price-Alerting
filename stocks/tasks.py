@@ -39,7 +39,7 @@ def fetch_all_stock_prices():
                 error_count += 1
                 logger.error(f"❌ Failed to update {stock.symbol}")
             
-            # Rate limiting: Wait between requests (except after last stock)
+            # Rate limiting: Wait between requests
             if i < active_stocks.count() - 1:
                 logger.info("Waiting 10 seconds before next request...")
                 time.sleep(10)
@@ -61,12 +61,8 @@ def fetch_all_stock_prices():
     }
 
 
-
-
-
 @shared_task
 def cleanup_old_price_data():
-    """Remove stock price data older than 30 days"""
     try:
         cutoff_date = timezone.now() - timedelta(days=30)
         
@@ -91,7 +87,6 @@ def cleanup_old_price_data():
 
 @shared_task
 def cleanup_old_alerts():
-    """Remove triggered alerts older than 7 days"""
     try:
         cutoff_date = timezone.now() - timedelta(days=7)
         

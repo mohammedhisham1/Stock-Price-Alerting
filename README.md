@@ -22,6 +22,18 @@ A modern, scalable system for real-time stock monitoring and intelligent alertin
 - 📱 **Responsive Frontend**: Modern React interface with real-time updates
 - 📚 **API Documentation**: Auto-generated docs with drf-spectacular
 
+## 🔧 System Optimizations
+
+**Recent Performance & Architecture Improvements:**
+
+- 🎯 **Market-Aware Operations**: Intelligent price fetching only during trading hours (9:30-16:00 ET, Mon-Fri)
+- ⚡ **Optimized Scheduling**: Background tasks run every 30 minutes (reduced from 2 minutes) to respect API rate limits
+- 🧹 **Clean Architecture**: Removed unused code and endpoints, streamlined API surface
+- 📊 **Comprehensive API Coverage**: Complete stock data endpoints for all use cases
+- 🔄 **Efficient Database Operations**: Atomic transactions and optimized queries
+- 🛠️ **Fixed Management Commands**: Corrected direct task execution for admin commands
+- 🎯 **Proper Service Layer**: Separation of concerns between views and business logic
+
 ## 🛠️ Tech Stack
 
 **Backend:**
@@ -278,7 +290,8 @@ Content-Type: application/json
 {
     "username": "testuser",
     "email": "test@example.com",
-    "password": "securepassword123"
+    "password": "securepassword123",
+    "password2": "securepassword123"
 }
 ```
 
@@ -339,10 +352,29 @@ GET /api/alerts/triggered/
 
 ### Stock Data
 
-#### Get Current Stock Prices
+#### Get All Stocks
 ```http
 GET /api/stocks/
 ```
+Returns list of all active stocks with metadata and latest price information.
+
+#### Get Individual Stock
+```http
+GET /api/stocks/{stock_id}/
+```
+Returns detailed information for a specific stock.
+
+#### Get Current Prices (All Stocks)
+```http
+GET /api/stocks/current_prices/
+```
+Returns current price snapshot for all active stocks - lightweight endpoint for dashboards.
+
+#### Get Price History
+```http
+GET /api/stocks/{stock_id}/price_history/?hours=24
+```
+Returns historical price data for a specific stock. Optional `hours` parameter (default: 24).
 
 ## Monitored Stocks
 
@@ -383,11 +415,11 @@ Triggers when stock price maintains a condition for specified duration:
 
 ## Background Tasks
 
-The system runs automated tasks:
+The system runs optimized automated tasks:
 
-- **Stock Price Fetching**: Every 5 minutes during market hours
-- **Alert Evaluation**: Every 2 minutes
-- **Cleanup**: Daily cleanup of old triggered alerts
+- **Stock Price Fetching**: Every 30 minutes during market hours (9:30-16:00 ET, Mon-Fri) - optimized for API rate limits
+- **Alert Evaluation**: Every 5 minutes to check for triggered conditions
+- **Data Cleanup**: Daily cleanup of old price data (30+ days) and triggered alerts (7+ days)
 
 ## Email Notifications
 
@@ -414,6 +446,21 @@ Configure Gmail SMTP in your `.env` file:
 | REDIS_URL | Redis connection string | Yes |
 | ALLOWED_HOSTS | Comma-separated allowed hosts | Production |
 | CORS_ALLOWED_ORIGINS | Frontend URLs for CORS | Production |
+
+## Management Commands
+
+The system includes useful management commands for administration:
+
+```bash
+# Manual stock price fetch (bypasses market hours check)
+python manage.py fetch_prices
+
+# Load initial stock data
+python manage.py loaddata seed_data_fixed.json
+
+# Create admin user
+python manage.py createsuperuser
+```
 
 ## Testing
 

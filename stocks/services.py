@@ -4,6 +4,7 @@ from decimal import Decimal
 from django.conf import settings
 from django.utils import timezone
 from django.db import transaction
+import pytz
 from .models import Stock, StockPrice
 
 logger = logging.getLogger(__name__)
@@ -16,9 +17,28 @@ class StockDataService:
         self.api_key = settings.TWELVE_DATA_API_KEY
         self.base_url = "https://api.twelvedata.com"
         
-    def fetch_and_update_stock(self, symbol):
+    def is_market_open(self):
+        """Check if US stock market is currently open"""
+        eastern = pytz.timezone('US/Eastern')
+        et_now = timezone.now().astimezone(eastern)
+        
+        # Market hours: 9:30 AM - 4:00 PM ET, Monday-Friday
+        if et_now.weekday() >= 5:  # Saturday=5, Sunday=6
+            return False
+            
+        market_open = et_now.replace(hour=9, minute=30, second=0, microsecond=0)
+        market_close = et_now.replace(hour=16, minute=0, second=0, microsecond=0)
+        
+        return market_open <= et_now <= market_close
+        
+    def fetch_and_update_stock(self, symbol, force_update=False):
         """Fetch quote and update stock price in database"""
         try:
+            # Skip API call if market is closed (unless forced)
+            if not force_update and not self.is_market_open():
+                logger.info(f"Market is closed, skipping update for {symbol}")
+                return None
+                
             logger.info(f"Fetching and updating {symbol}")
             
             # Fetch quote data
@@ -88,34 +108,3 @@ class StockDataService:
             return None
 
 
-def initialize_monitored_stocks():
-    """Initialize default stocks to monitor"""
-    stock_data = [
-        ('AAPL', 'Apple Inc.', 'NASDAQ'),
-        ('TSLA', 'Tesla Inc.', 'NASDAQ'),
-        ('GOOGL', 'Alphabet Inc.', 'NASDAQ'),
-        ('AMZN', 'Amazon.com Inc.', 'NASDAQ'),
-        ('MSFT', 'Microsoft Corporation', 'NASDAQ'),
-        ('META', 'Meta Platforms Inc.', 'NASDAQ'),
-        ('NVDA', 'NVIDIA Corporation', 'NASDAQ'),
-        ('NFLX', 'Netflix Inc.', 'NASDAQ'),
-        ('UBER', 'Uber Technologies Inc.', 'NYSE'),
-        ('SPOT', 'Spotify Technology S.A.', 'NYSE'),
-    ]
-    
-    created_count = 0
-    for symbol, name, exchange in stock_data:
-        stock, created = Stock.objects.get_or_create(
-            symbol=symbol,
-            defaults={
-                'name': name,
-                'exchange': exchange,
-                'is_active': True
-            }
-        )
-        if created:
-            created_count += 1
-            logger.info(f"Created stock: {symbol} - {name}")
-    
-    logger.info(f"Initialized {created_count} new stocks")
-    return created_count

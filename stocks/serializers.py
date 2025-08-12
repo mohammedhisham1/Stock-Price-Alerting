@@ -38,10 +38,3 @@ class StockPriceSerializer(serializers.ModelSerializer):
                  'high_price', 'low_price', 'close_price', 'volume', 
                  'timestamp', 'created_at']
         read_only_fields = ['id', 'created_at']
-
-
-class StockPriceHistorySerializer(serializers.Serializer):
-    symbol = serializers.CharField()
-    prices = StockPriceSerializer(many=True, read_only=True)
-    period = serializers.CharField(read_only=True)
-    count = serializers.IntegerField(read_only=True)
