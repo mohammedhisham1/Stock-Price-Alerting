@@ -248,13 +248,6 @@ const AlertList = () => {
                                                     <p style={{ fontWeight: '500' }}>{formatDate(alert.created_at)}</p>
                                                 </div>
                                             </div>
-
-                                            {alert.description && (
-                                                <div style={{ marginBottom: '1rem' }}>
-                                                    <p style={{ fontSize: '0.875rem', color: '#6b7280', margin: '0 0 0.25rem 0' }}>Description</p>
-                                                    <p style={{ fontStyle: 'italic' }}>{alert.description}</p>
-                                                </div>
-                                            )}
                                         </div>
 
                                         <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '1rem' }}>

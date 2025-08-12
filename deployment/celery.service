@@ -1,0 +1,18 @@
+[Unit]
+Description=Celery Worker Service
+After=network.target redis.service
+
+[Service]
+Type=forking
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/Stock-Price-Alerting
+Environment=PATH=/home/ubuntu/Stock-Price-Alerting/venv/bin
+ExecStart=/home/ubuntu/Stock-Price-Alerting/venv/bin/celery multi start worker1 -A stock_alerting --pidfile=/var/run/celery/%%n.pid --logfile=/var/log/celery/%%n%%I.log --loglevel=info
+ExecStop=/home/ubuntu/Stock-Price-Alerting/venv/bin/celery multi stopwait worker1 --pidfile=/var/run/celery/%%n.pid
+ExecReload=/home/ubuntu/Stock-Price-Alerting/venv/bin/celery multi restart worker1 -A stock_alerting --pidfile=/var/run/celery/%%n.pid --logfile=/var/log/celery/%%n%%I.log --loglevel=info
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

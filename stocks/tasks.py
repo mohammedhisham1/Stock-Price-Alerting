@@ -4,7 +4,6 @@ from celery import shared_task
 from django.utils import timezone
 from datetime import timedelta
 from .models import Stock, StockPrice
-from alerts.models import TriggeredAlert
 from .services import StockDataService
 
 logger = logging.getLogger(__name__)
@@ -12,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 @shared_task
 def fetch_all_stock_prices():
-    """Fetch current prices for all active stocks with proper rate limiting"""
+    """Fetch current prices for all active stocks """
     service = StockDataService()
     active_stocks = Stock.objects.filter(is_active=True)
     
@@ -34,10 +33,10 @@ def fetch_all_stock_prices():
             
             if result:
                 success_count += 1
-                logger.info(f"✅ Updated {stock.symbol}")
+                logger.info(f" Updated {stock.symbol}")
             else:
                 error_count += 1
-                logger.error(f"❌ Failed to update {stock.symbol}")
+                logger.error(f" Failed to update {stock.symbol}")
             
             # Rate limiting: Wait between requests
             if i < active_stocks.count() - 1:
@@ -46,10 +45,9 @@ def fetch_all_stock_prices():
                 
         except Exception as e:
             error_count += 1
-            logger.error(f"❌ Exception processing {stock.symbol}: {e}")
+            logger.error(f" Exception processing {stock.symbol}: {e}")
             continue
     
-    # Summary
     total_processed = success_count + error_count
     logger.info(f"Completed: {success_count} successful, {error_count} errors out of {total_processed}")
     

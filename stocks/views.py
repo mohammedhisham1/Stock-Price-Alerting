@@ -64,10 +64,9 @@ class StockViewSet(viewsets.ReadOnlyModelViewSet):
         try:
             stocks = self.get_queryset()
             
-            # Get latest price for each stock efficiently
             stocks_with_prices = []
             for stock in stocks:
-                latest_price = stock.prices.first()  # Already ordered by -timestamp
+                latest_price = stock.prices.first()  
                 stock_data = {
                     'id': stock.id,
                     'symbol': stock.symbol,

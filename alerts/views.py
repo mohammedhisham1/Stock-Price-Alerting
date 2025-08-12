@@ -11,12 +11,10 @@ from .serializers import (
     TriggeredAlertSerializer,
 )
 from .tasks import evaluate_alert
-
 logger = logging.getLogger(__name__)
 
 
 class AlertViewSet(viewsets.ModelViewSet):
-    """ViewSet for managing user alerts"""
     queryset = Alert.objects.all()
     serializer_class = AlertSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -115,47 +113,7 @@ class AlertViewSet(viewsets.ModelViewSet):
                 'success': False,
                 'error': 'Failed to delete alert'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
-    @action(detail=False, methods=['get'])
-    def triggered(self, request):
-        """Get user's triggered alerts"""
-        try:
-            triggered_alerts = TriggeredAlert.objects.filter(
-                alert__user=request.user
-            ).order_by('-triggered_at')
-            
-            # Filter by date range
-            days = request.query_params.get('days')
-            if days:
-                try:
-                    days = int(days)
-                    since = timezone.now() - timezone.timedelta(days=days)
-                    triggered_alerts = triggered_alerts.filter(triggered_at__gte=since)
-                except ValueError:
-                    pass
-            
-            page = self.paginate_queryset(triggered_alerts)
-            if page is not None:
-                serializer = TriggeredAlertSerializer(page, many=True)
-                return self.get_paginated_response({
-                    'success': True,
-                    'data': serializer.data
-                })
-            
-            serializer = TriggeredAlertSerializer(triggered_alerts, many=True)
-            return Response({
-                'success': True,
-                'count': triggered_alerts.count(),
-                'data': serializer.data
-            })
-            
-        except Exception as e:
-            logger.error(f"Error fetching triggered alerts: {e}")
-            return Response({
-                'success': False,
-                'error': 'Failed to fetch triggered alerts'
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
+
     @action(detail=False, methods=['get'])
     def statistics(self, request):
         """Get user's alert statistics"""
@@ -199,6 +157,45 @@ class TriggeredAlertViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        return TriggeredAlert.objects.filter(
+        queryset = TriggeredAlert.objects.filter(
             alert__user=self.request.user
         ).order_by('-triggered_at')
+        
+        # Filter by date range if provided
+        days = self.request.query_params.get('days')
+        if days:
+            try:
+                days = int(days)
+                since = timezone.now() - timezone.timedelta(days=days)
+                queryset = queryset.filter(triggered_at__gte=since)
+            except ValueError:
+                pass
+                
+        return queryset
+    
+    def list(self, request, *args, **kwargs):
+        """List user's triggered alerts with enhanced response format"""
+        try:
+            queryset = self.get_queryset()
+            
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response({
+                    'success': True,
+                    'data': serializer.data
+                })
+            
+            serializer = self.get_serializer(queryset, many=True)
+            return Response({
+                'success': True,
+                'count': queryset.count(),
+                'data': serializer.data
+            })
+            
+        except Exception as e:
+            logger.error(f"Error fetching triggered alerts: {e}")
+            return Response({
+                'success': False,
+                'error': 'Failed to fetch triggered alerts'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

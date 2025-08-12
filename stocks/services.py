@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class StockDataService:
-    """Service for fetching stock data with rate limiting"""
+    "Service for fetching stock data with rate limiting"
     
     def __init__(self):
         self.api_key = settings.TWELVE_DATA_API_KEY
@@ -31,11 +31,11 @@ class StockDataService:
         
         return market_open <= et_now <= market_close
         
-    def fetch_and_update_stock(self, symbol, force_update=False):
+    def fetch_and_update_stock(self, symbol):
         """Fetch quote and update stock price in database"""
         try:
             # Skip API call if market is closed (unless forced)
-            if not force_update and not self.is_market_open():
+            if not self.is_market_open():
                 logger.info(f"Market is closed, skipping update for {symbol}")
                 return None
                 

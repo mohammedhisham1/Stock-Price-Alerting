@@ -1,0 +1,19 @@
+[Unit]
+Description=Stock Alerting Django App
+After=network.target postgresql.service redis.service
+
+[Service]
+Type=notify
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/Stock-Price-Alerting
+Environment=PATH=/home/ubuntu/Stock-Price-Alerting/venv/bin
+ExecStart=/home/ubuntu/Stock-Price-Alerting/venv/bin/gunicorn --workers 3 --bind 0.0.0.0:8000 stock_alerting.wsgi:application
+Restart=on-failure
+RestartSec=10
+KillMode=mixed
+TimeoutStopSec=5
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

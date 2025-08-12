@@ -1,0 +1,140 @@
+[
+    {
+        "model": "stocks.stock",
+        "pk": 1,
+        "fields": {
+            "symbol": "AAPL",
+            "name": "Apple Inc.",
+            "exchange": "NASDAQ",
+            "is_active": true,
+            "current_price": "227.25",
+            "last_updated": "2025-08-12T20:00:00Z"
+        }
+    },
+    {
+        "model": "stocks.stock",
+        "pk": 2,
+        "fields": {
+            "symbol": "TSLA",
+            "name": "Tesla Inc.",
+            "exchange": "NASDAQ",
+            "is_active": true,
+            "current_price": "242.68",
+            "last_updated": "2025-08-12T20:00:00Z"
+        }
+    },
+    {
+        "model": "stocks.stock",
+        "pk": 3,
+        "fields": {
+            "symbol": "GOOGL",
+            "name": "Alphabet Inc.",
+            "exchange": "NASDAQ",
+            "is_active": true,
+            "current_price": "164.83",
+            "last_updated": "2025-08-12T20:00:00Z"
+        }
+    },
+    {
+        "model": "stocks.stock",
+        "pk": 4,
+        "fields": {
+            "symbol": "AMZN",
+            "name": "Amazon.com Inc.",
+            "exchange": "NASDAQ",
+            "is_active": true,
+            "current_price": "178.25",
+            "last_updated": "2025-08-12T20:00:00Z"
+        }
+    },
+    {
+        "model": "stocks.stock",
+        "pk": 5,
+        "fields": {
+            "symbol": "MSFT",
+            "name": "Microsoft Corporation",
+            "exchange": "NASDAQ",
+            "is_active": true,
+            "current_price": "427.89",
+            "last_updated": "2025-08-12T20:00:00Z"
+        }
+    },
+    {
+        "model": "stocks.stock",
+        "pk": 6,
+        "fields": {
+            "symbol": "META",
+            "name": "Meta Platforms Inc.",
+            "exchange": "NASDAQ",
+            "is_active": true,
+            "current_price": "518.73",
+            "last_updated": "2025-08-12T20:00:00Z"
+        }
+    },
+    {
+        "model": "stocks.stock",
+        "pk": 7,
+        "fields": {
+            "symbol": "NVDA",
+            "name": "NVIDIA Corporation",
+            "exchange": "NASDAQ",
+            "is_active": true,
+            "current_price": "116.91",
+            "last_updated": "2025-08-12T20:00:00Z"
+        }
+    },
+    {
+        "model": "stocks.stock",
+        "pk": 8,
+        "fields": {
+            "symbol": "NFLX",
+            "name": "Netflix Inc.",
+            "exchange": "NASDAQ",
+            "is_active": true,
+            "current_price": "641.15",
+            "last_updated": "2025-08-12T20:00:00Z"
+        }
+    },
+    {
+        "model": "stocks.stock",
+        "pk": 9,
+        "fields": {
+            "symbol": "UBER",
+            "name": "Uber Technologies Inc.",
+            "exchange": "NYSE",
+            "is_active": true,
+            "current_price": "71.23",
+            "last_updated": "2025-08-12T20:00:00Z"
+        }
+    },
+    {
+        "model": "stocks.stock",
+        "pk": 10,
+        "fields": {
+            "symbol": "SPOT",
+            "name": "Spotify Technology S.A.",
+            "exchange": "NYSE",
+            "is_active": true,
+            "current_price": "325.47",
+            "last_updated": "2025-08-12T20:00:00Z"
+        }
+    },
+    {
+        "model": "auth.user",
+        "pk": 1,
+        "fields": {
+            "password": "pbkdf2_sha256$320000$dummy$hash",
+            "last_login": null,
+            "is_superuser": false,
+            "username": "testuser",
+            "first_name": "",
+            "last_name": "",
+            "email": "test@example.com",
+            "is_staff": false,
+            "is_active": true,
+            "date_joined": "2025-08-12T12:00:00Z",
+            "groups": [],
+            "user_permissions": []
+        }
+    }
+]

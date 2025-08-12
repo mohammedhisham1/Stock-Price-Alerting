@@ -14,7 +14,6 @@ const CreateAlert = () => {
         condition: 'above',
         threshold_price: '',
         duration_minutes: '',
-        description: '',
         is_active: true
     });
 
@@ -295,33 +294,6 @@ const CreateAlert = () => {
                             </p>
                         </div>
                     )}
-
-                    {/* Description */}
-                    <div>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', fontSize: '1rem' }}>
-                            📝 Description (optional)
-                        </label>
-                        <textarea
-                            name="description"
-                            value={formData.description}
-                            onChange={handleChange}
-                            rows="3"
-                            placeholder="Add a note about this alert (optional)"
-                            style={{
-                                width: '100%',
-                                padding: '0.75rem',
-                                border: '1px solid #d1d5db',
-                                borderRadius: '0.5rem',
-                                fontSize: '1rem',
-                                outline: 'none',
-                                transition: 'border-color 0.2s',
-                                boxSizing: 'border-box',
-                                resize: 'vertical'
-                            }}
-                            onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                            onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-                        />
-                    </div>
 
                     {/* Active Toggle */}
                     <div>

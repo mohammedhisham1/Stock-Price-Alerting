@@ -57,7 +57,6 @@ class Alert(models.Model):
         return f"{self.user.username}: {self.stock.symbol} {self.condition} ${self.threshold_price}{duration_str}"
     
     def clean(self):
-        """Validate model fields"""
         from django.core.exceptions import ValidationError
         if self.alert_type == 'duration':
             if not self.duration_minutes:
@@ -79,9 +78,6 @@ class Alert(models.Model):
             return current_price < self.threshold_price
         return False
     
-    def get_condition_display_text(self):
-        """Get human-readable condition text"""
-        return f"goes {self.condition} ${self.threshold_price}"
     
     def should_trigger(self, current_price):
         """Determine if the alert should be triggered"""

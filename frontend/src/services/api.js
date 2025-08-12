@@ -81,7 +81,7 @@ export const alertAPI = {
     createAlert: (alertData) => api.post('/alerts/', alertData),
     updateAlert: (id, alertData) => api.put(`/alerts/${id}/`, alertData),
     deleteAlert: (id) => api.delete(`/alerts/${id}/`),
-    getTriggeredAlerts: () => api.get('/alerts/triggered/'),
+    getTriggeredAlerts: () => api.get('/triggered-alerts/'),
 };
 
 export default api;

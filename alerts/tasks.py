@@ -2,16 +2,12 @@ from celery import shared_task
 from django.utils import timezone
 from django.core.mail import send_mail
 from django.conf import settings
-from django.template import Context, Template
 import logging
 from celery import group
 
-
-from .models import Alert, TriggeredAlert, NotificationTemplate
-from stocks.models import StockPrice
+from .models import Alert, TriggeredAlert
 
 logger = logging.getLogger(__name__)
-
 
 @shared_task
 def evaluate_alert(alert_id):
@@ -125,51 +121,24 @@ def send_alert_notification(triggered_alert_id):
         
         if not user.email:
             logger.warning(f"No email address for user {user.username}")
-            return {
-                'triggered_alert_id': triggered_alert_id,
-                'success': False,
-                'error': 'No email address'
-            }
+            triggered_alert.notification_error = "No email address"
+            triggered_alert.save()
+            return {'triggered_alert_id': triggered_alert_id, 'success': False, 'error': 'No email address'}
         
-        # Get notification template
-        try:
-            template = NotificationTemplate.objects.get(
-                template_type=alert.alert_type,
-                is_active=True
-            )
-        except NotificationTemplate.DoesNotExist:
-            # Use default template
-            template = create_default_template(alert.alert_type)
-        
-        # Prepare template context
-        context = {
-            'user_name': user.first_name or user.username,
-            'stock_symbol': alert.stock.symbol,
-            'stock_name': alert.stock.name,
-            'condition': alert.condition,
-            'threshold_price': alert.threshold_price,
-            'trigger_price': triggered_alert.trigger_price,
-            'triggered_at': triggered_alert.triggered_at,
-            'alert_type': alert.alert_type,
-            'duration_minutes': alert.duration_minutes if alert.alert_type == 'duration' else None,
-        }
-        
-        # Render subject and content
-        subject_template = Template(template.subject)
-        text_template = Template(template.text_content)
-        html_template = Template(template.html_content)
-        
-        subject = subject_template.render(Context(context))
-        text_content = text_template.render(Context(context))
-        html_content = html_template.render(Context(context))
+        # Simple email content
+        if alert.alert_type == 'duration':
+            subject = f"Stock Alert: {alert.stock.symbol} {alert.condition} ${alert.threshold_price} for {alert.duration_minutes} minutes"
+            message = f"Your duration alert has been triggered!\n\nStock: {alert.stock.symbol} ({alert.stock.name})\nPrice {alert.condition} ${alert.threshold_price} for {alert.duration_minutes} minutes\nCurrent Price: ${triggered_alert.trigger_price}\nTriggered: {triggered_alert.triggered_at}"
+        else:
+            subject = f"Stock Alert: {alert.stock.symbol} {alert.condition} ${alert.threshold_price}"
+            message = f"Your stock alert has been triggered!\n\nStock: {alert.stock.symbol} ({alert.stock.name})\nPrice {alert.condition} ${alert.threshold_price}\nCurrent Price: ${triggered_alert.trigger_price}\nTriggered: {triggered_alert.triggered_at}"
         
         # Send email
         send_mail(
             subject=subject,
-            message=text_content,
+            message=message,
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[user.email],
-            html_message=html_content,
             fail_silently=False
         )
         
@@ -179,103 +148,16 @@ def send_alert_notification(triggered_alert_id):
         triggered_alert.save()
         
         logger.info(f"Alert notification sent to {user.email} for {alert}")
-        
-        return {
-            'triggered_alert_id': triggered_alert_id,
-            'success': True,
-            'email_sent': True,
-            'recipient': user.email
-        }
+        return {'triggered_alert_id': triggered_alert_id, 'success': True, 'email_sent': True, 'recipient': user.email}
         
     except TriggeredAlert.DoesNotExist:
         logger.error(f"Triggered alert {triggered_alert_id} not found")
-        return {
-            'triggered_alert_id': triggered_alert_id,
-            'success': False,
-            'error': 'Triggered alert not found'
-        }
+        return {'triggered_alert_id': triggered_alert_id, 'success': False, 'error': 'Triggered alert not found'}
     except Exception as e:
         logger.error(f"Error sending notification for triggered alert {triggered_alert_id}: {e}")
-        
-        # Update triggered alert with error
+        # Save error to triggered alert if it exists
         try:
-            triggered_alert = TriggeredAlert.objects.get(id=triggered_alert_id)
-            triggered_alert.notification_error = str(e)
-            triggered_alert.save()
-        except TriggeredAlert.DoesNotExist:
+            TriggeredAlert.objects.filter(id=triggered_alert_id).update(notification_error=str(e))
+        except:
             pass
-        
-        return {
-            'triggered_alert_id': triggered_alert_id,
-            'success': False,
-            'error': str(e)
-        }
-
-
-def create_default_template(template_type):
-    """Create default notification template"""
-    if template_type == 'threshold':
-        subject = "Stock Alert: {{stock_symbol}} {{condition}} ${{threshold_price}}"
-        text_content = """
-Hello {{user_name}},
-
-Your stock alert has been triggered!
-
-Stock: {{stock_symbol}} ({{stock_name}})
-Alert: Price {{condition}} ${{threshold_price}}
-Current Price: ${{trigger_price}}
-Triggered At: {{triggered_at}}
-
-This is an automated message from Stock Price Alerting System.
-        """.strip()
-        html_content = """
-<h2>Stock Alert Triggered</h2>
-<p>Hello {{user_name}},</p>
-<p>Your stock alert has been triggered!</p>
-<ul>
-<li><strong>Stock:</strong> {{stock_symbol}} ({{stock_name}})</li>
-<li><strong>Alert:</strong> Price {{condition}} ${{threshold_price}}</li>
-<li><strong>Current Price:</strong> ${{trigger_price}}</li>
-<li><strong>Triggered At:</strong> {{triggered_at}}</li>
-</ul>
-<p>This is an automated message from Stock Price Alerting System.</p>
-        """.strip()
-    
-    else:  # duration
-        subject = "Stock Alert: {{stock_symbol}} {{condition}} ${{threshold_price}} for {{duration_minutes}} minutes"
-        text_content = """
-Hello {{user_name}},
-
-Your duration stock alert has been triggered!
-
-Stock: {{stock_symbol}} ({{stock_name}})
-Alert: Price {{condition}} ${{threshold_price}} for {{duration_minutes}} minutes
-Current Price: ${{trigger_price}}
-Triggered At: {{triggered_at}}
-
-This is an automated message from Stock Price Alerting System.
-        """.strip()
-        html_content = """
-<h2>Duration Stock Alert Triggered</h2>
-<p>Hello {{user_name}},</p>
-<p>Your duration stock alert has been triggered!</p>
-<ul>
-<li><strong>Stock:</strong> {{stock_symbol}} ({{stock_name}})</li>
-<li><strong>Alert:</strong> Price {{condition}} ${{threshold_price}} for {{duration_minutes}} minutes</li>
-<li><strong>Current Price:</strong> ${{trigger_price}}</li>
-<li><strong>Triggered At:</strong> {{triggered_at}}</li>
-</ul>
-<p>This is an automated message from Stock Price Alerting System.</p>
-        """.strip()
-    
-    template, created = NotificationTemplate.objects.get_or_create(
-        template_type=template_type,
-        defaults={
-            'subject': subject,
-            'text_content': text_content,
-            'html_content': html_content,
-            'is_active': True
-        }
-    )
-    
-    return template
+        return {'triggered_alert_id': triggered_alert_id, 'success': False, 'error': str(e)}

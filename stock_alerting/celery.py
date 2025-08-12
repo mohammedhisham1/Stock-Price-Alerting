@@ -22,7 +22,7 @@ app.conf.beat_schedule = {
     },
     'evaluate-alerts': {
         'task': 'alerts.tasks.evaluate_all_alerts', 
-        'schedule': crontab(minute='*/5'),   # Every 5 minutes
+        'schedule': crontab(minute='*/2'),   # Every 5 minutes
     },
     'cleanup-old-data': {
         'task': 'stocks.tasks.cleanup_old_price_data',
