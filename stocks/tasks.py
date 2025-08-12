@@ -5,7 +5,7 @@ from django.utils import timezone
 from datetime import timedelta
 from .models import Stock, StockPrice
 from alerts.models import TriggeredAlert
-from .services import StockDataService, update_stock_price
+from .services import StockDataService
 
 logger = logging.getLogger(__name__)
 
@@ -29,20 +29,15 @@ def fetch_all_stock_prices():
         try:
             logger.info(f"Processing {i+1}/{active_stocks.count()}: {stock.symbol}")
             
-            # Fetch quote data
-            quote_data = service.fetch_quote(stock.symbol)
+            # Fetch and update stock data in single operation
+            result = service.fetch_and_update_stock(stock.symbol)
             
-            if quote_data:
-                # Update database
-                if update_stock_price(stock.symbol, quote_data):
-                    success_count += 1
-                    logger.info(f"✅ Updated {stock.symbol}: ${quote_data['price']}")
-                else:
-                    error_count += 1
-                    logger.error(f"❌ Failed to update {stock.symbol} in database")
+            if result:
+                success_count += 1
+                logger.info(f"✅ Updated {stock.symbol}")
             else:
                 error_count += 1
-                logger.error(f"❌ No data received for {stock.symbol}")
+                logger.error(f"❌ Failed to update {stock.symbol}")
             
             # Rate limiting: Wait between requests (except after last stock)
             if i < active_stocks.count() - 1:

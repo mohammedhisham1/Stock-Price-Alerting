@@ -120,23 +120,23 @@ class StockViewSet(viewsets.ReadOnlyModelViewSet):
         try:
             stock = self.get_object()
             
-            # Use the service directly for immediate update
+            # Use the combined service method for immediate update
             service = StockDataService()
-            quote_data = service.fetch_quote(stock.symbol)
+            result = service.fetch_and_update_stock(stock.symbol)
             
-            if quote_data:
-                from .services import update_stock_price
-                update_stock_price(stock.symbol, quote_data)
-                
+            if result:
+                # Get the updated stock price
+                stock.refresh_from_db()
                 return Response({
                     'success': True,
                     'message': f'Price updated for {stock.symbol}',
-                    'price': str(quote_data['price'])
+                    'price': str(stock.current_price),
+                    'updated_at': stock.last_updated
                 })
             else:
                 return Response({
                     'success': False,
-                    'error': 'Failed to fetch price data'
+                    'error': 'Failed to fetch and update price data'
                 }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
         except Exception as e:
@@ -166,42 +166,6 @@ class StockViewSet(viewsets.ReadOnlyModelViewSet):
             
         except Exception as e:
             logger.error(f"Error initializing stocks: {e}")
-            return Response({
-                'success': False,
-                'error': str(e)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
-    @action(detail=False, methods=['get'])
-    def api_usage(self, request):
-        """Get API usage statistics"""
-        try:
-            if not request.user.is_staff:
-                return Response({
-                    'success': False,
-                    'error': 'Admin access required'
-                }, status=status.HTTP_403_FORBIDDEN)
-            
-            # Get daily request count from APIRequestLog model
-            from .models import APIRequestLog
-            from django.utils import timezone
-            
-            today = timezone.now().date()
-            try:
-                logs = APIRequestLog.objects.filter(date=today)
-                daily_requests = sum(log.request_count for log in logs)
-            except Exception:
-                daily_requests = 0
-            
-            return Response({
-                'success': True,
-                'daily_requests': daily_requests,
-                'api_limit': 800,  # Twelve Data free tier limit
-                'remaining': max(0, 800 - daily_requests),
-                'date': today
-            })
-            
-        except Exception as e:
-            logger.error(f"Error fetching API usage: {e}")
             return Response({
                 'success': False,
                 'error': str(e)

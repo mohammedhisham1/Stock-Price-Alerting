@@ -2,14 +2,13 @@ from rest_framework import status, permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import authenticate, get_user_model
+from django.contrib.auth import  get_user_model
 import logging
 
 from .serializers import (
     UserRegistrationSerializer, 
     UserLoginSerializer, 
     UserProfileSerializer,
-    TokenSerializer
 )
 
 User = get_user_model()
@@ -20,7 +19,6 @@ logger = logging.getLogger(__name__)
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 def register(request):
-    """User registration endpoint"""
     try:
         serializer = UserRegistrationSerializer(data=request.data)
         if serializer.is_valid():
@@ -62,7 +60,6 @@ def register(request):
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 def login(request):
-    """User login endpoint"""
     try:
         serializer = UserLoginSerializer(data=request.data)
         if serializer.is_valid():
@@ -104,7 +101,6 @@ def login(request):
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
 def profile(request):
-    """Get user profile"""
     try:
         serializer = UserProfileSerializer(request.user)
         return Response({
@@ -122,7 +118,6 @@ def profile(request):
 @api_view(['PUT'])
 @permission_classes([permissions.IsAuthenticated])
 def update_profile(request):
-    """Update user profile"""
     try:
         serializer = UserProfileSerializer(request.user, data=request.data, partial=True)
         if serializer.is_valid():

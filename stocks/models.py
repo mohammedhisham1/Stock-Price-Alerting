@@ -36,17 +36,3 @@ class StockPrice(models.Model):
 
     def __str__(self):
         return f"{self.stock.symbol} - ${self.price} at {self.timestamp}"
-
-
-class APIRequestLog(models.Model):
-    "Model to track API requests and rate limiting"
-    endpoint = models.CharField(max_length=255)
-    request_count = models.IntegerField(default=0)
-    date = models.DateField(auto_now_add=True)
-    last_request = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        unique_together = ['endpoint', 'date']
-
-    def __str__(self):
-        return f"{self.endpoint} - {self.request_count} requests on {self.date}"

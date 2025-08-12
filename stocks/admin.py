@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Stock, StockPrice, APIRequestLog
+from .models import Stock, StockPrice
 
 
 @admin.register(Stock)
@@ -17,11 +17,3 @@ class StockPriceAdmin(admin.ModelAdmin):
     search_fields = ['stock__symbol', 'stock__name']
     ordering = ['-timestamp']
     readonly_fields = ['created_at']
-
-
-@admin.register(APIRequestLog)
-class APIRequestLogAdmin(admin.ModelAdmin):
-    list_display = ['endpoint', 'request_count', 'date', 'last_request']
-    list_filter = ['endpoint', 'date']
-    ordering = ['-date', '-last_request']
-    readonly_fields = ['date', 'last_request']

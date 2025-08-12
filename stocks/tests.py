@@ -6,7 +6,7 @@ from unittest.mock import patch, MagicMock
 import requests
 
 from stocks.models import Stock, StockPrice
-from stocks.services import StockDataService, update_stock_price, initialize_monitored_stocks
+from stocks.services import StockDataService, initialize_monitored_stocks
 
 User = get_user_model()
 
@@ -55,54 +55,6 @@ class StockPriceModelTest(TestCase):
         self.assertEqual(stock.current_price, Decimal('155.00'))
 
 
-class StockDataServiceTest(TestCase):
-    def setUp(self):
-        self.service = StockDataService()
-    
-    @patch('stocks.services.requests.get')
-    def test_fetch_quote_success_simplified(self, mock_get):
-        # Mock successful API response
-        mock_response = MagicMock()
-        mock_response.json.return_value = {
-            'close': '150.25',
-            'open': '149.50',
-            'high': '151.00',
-            'low': '148.75',
-            'volume': '1000000'
-        }
-        mock_response.raise_for_status.return_value = None
-        mock_get.return_value = mock_response
-        
-        quote_data = self.service.fetch_quote('AAPL')
-        self.assertIsNotNone(quote_data)
-        self.assertEqual(quote_data['price'], Decimal('150.25'))
-    
-    @patch('stocks.services.requests.get')
-    def test_fetch_quote_failure(self, mock_get):
-        # Mock failed API response (RequestException)
-        mock_get.side_effect = requests.RequestException('API Error')
-        
-        quote_data = self.service.fetch_quote('AAPL')
-        self.assertIsNone(quote_data)
-    
-    @patch('stocks.services.requests.get')
-    def test_fetch_quote_success(self, mock_get):
-        # Mock successful API response
-        mock_response = MagicMock()
-        mock_response.json.return_value = {
-            'close': '150.25',
-            'open': '149.50',
-            'high': '151.00',
-            'low': '148.75',
-            'volume': '1000000'
-        }
-        mock_response.raise_for_status.return_value = None
-        mock_get.return_value = mock_response
-        
-        quote = self.service.fetch_quote('AAPL')
-        self.assertEqual(quote['price'], Decimal('150.25'))
-        self.assertEqual(quote['open'], Decimal('149.50'))
-        self.assertEqual(quote['volume'], 1000000)
 
 
 class StockServicesTest(TestCase):
@@ -113,25 +65,42 @@ class StockServicesTest(TestCase):
             exchange='NASDAQ'
         )
     
-    def test_update_stock_price(self):
-        quote_data = {
-            'price': Decimal('150.00'),
-            'open': Decimal('149.00'),
-            'high': Decimal('151.00'),
-            'low': Decimal('148.00'),
-            'volume': 1000000
+    def test_fetch_and_update_stock(self):
+        service = StockDataService()
+        
+        # Mock the API response
+        mock_response_data = {
+            'close': '150.00',
+            'open': '149.00', 
+            'high': '151.00',
+            'low': '148.00',
+            'volume': '1000000'
         }
         
-        stock_price = update_stock_price('AAPL', quote_data)
-        
-        self.assertIsNotNone(stock_price)
-        self.assertEqual(stock_price.price, Decimal('150.00'))
-        self.assertEqual(stock_price.volume, 1000000)
+        with patch('stocks.services.requests.get') as mock_get:
+            mock_response = MagicMock()
+            mock_response.json.return_value = mock_response_data
+            mock_response.raise_for_status.return_value = None
+            mock_get.return_value = mock_response
+            
+            stock_price = service.fetch_and_update_stock('AAPL')
+            
+            self.assertIsNotNone(stock_price)
+            self.assertEqual(stock_price.price, Decimal('150.00'))
+            self.assertEqual(stock_price.volume, 1000000)
     
-    def test_update_stock_price_nonexistent_stock(self):
-        quote_data = {'price': Decimal('150.00')}
-        stock_price = update_stock_price('NONEXISTENT', quote_data)
-        self.assertIsNone(stock_price)
+    def test_fetch_and_update_nonexistent_stock(self):
+        service = StockDataService()
+        
+        # Mock the API response
+        with patch('stocks.services.requests.get') as mock_get:
+            mock_response = MagicMock()
+            mock_response.json.return_value = {'close': '150.00'}
+            mock_response.raise_for_status.return_value = None
+            mock_get.return_value = mock_response
+            
+            stock_price = service.fetch_and_update_stock('NONEXISTENT')
+            self.assertIsNone(stock_price)
     
     def test_initialize_monitored_stocks(self):
         # Clear existing stocks

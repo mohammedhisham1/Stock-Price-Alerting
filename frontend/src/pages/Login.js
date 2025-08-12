@@ -45,7 +45,7 @@ const Login = () => {
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <div>
                     <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
-                        Username or Email
+                        Username
                     </label>
                     <input
                         type="text"

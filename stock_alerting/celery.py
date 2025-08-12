@@ -6,7 +6,6 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'stock_alerting.settings')
 
 app = Celery('stock_alerting')
 
-# Using a string here means the worker doesn't have to serialize
 # the configuration object to child processes.
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
@@ -27,11 +26,11 @@ app.conf.beat_schedule = {
     },
     'cleanup-old-data': {
         'task': 'stocks.tasks.cleanup_old_price_data',
-        'schedule': crontab(hour=2, minute=0),  # Daily at 2 AM
+        'schedule': crontab(day_of_month=1, hour=2, minute=0),  # Monthly on 1st at 2 AM
     },
     'cleanup-old-alerts': {
         'task': 'stocks.tasks.cleanup_old_alerts',
-        'schedule': crontab(hour=2, minute=30),  # Daily at 2:30 AM
+        'schedule': crontab(day_of_month=1, hour=2, minute=30),  # Monthly on 1st at 2:30 AM
     },
 }
 
