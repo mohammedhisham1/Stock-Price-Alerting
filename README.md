@@ -91,7 +91,6 @@ After deployment, access your application at:
 - 🖥️ **API**: `http://your-ec2-ip:8000/api/`  
 - 📚 **API Docs**: `http://your-ec2-ip:8000/api/docs/`
 - ⚙️ **Admin**: `http://your-ec2-ip:8000/admin/`
-- ❤️ **Health**: `http://your-ec2-ip:8000/api/health/`
 ```
 
 **Access the application:**
