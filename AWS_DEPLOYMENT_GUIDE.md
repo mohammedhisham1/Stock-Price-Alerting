@@ -94,6 +94,12 @@ sudo cp deployment/stock-alerting.service /etc/systemd/system/
 sudo cp deployment/celery.service /etc/systemd/system/
 sudo cp deployment/celerybeat.service /etc/systemd/system/
 
+sudo mkdir -p /var/run/celery
+sudo chown ubuntu:ubuntu /var/run/celery
+
+sudo chown -R ubuntu:ubuntu /home/ubuntu/Stock-Price-Alerting/staticfiles
+sudo chmod -R 755 /home/ubuntu/Stock-Price-Alerting/staticfiles
+
 # Enable services
 sudo systemctl enable stock-alerting celery celerybeat
 sudo systemctl start stock-alerting celery celerybeat
