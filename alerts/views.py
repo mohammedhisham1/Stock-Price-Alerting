@@ -4,14 +4,13 @@ from rest_framework.response import Response
 from django.utils import timezone
 import logging
 
-from .models import Alert, TriggeredAlert, NotificationTemplate
+from .models import Alert, TriggeredAlert
 from .serializers import (
     AlertSerializer, 
     AlertCreateSerializer, 
     TriggeredAlertSerializer,
-    NotificationTemplateSerializer
 )
-from .tasks import evaluate_alert, send_alert_notification
+from .tasks import evaluate_alert
 
 logger = logging.getLogger(__name__)
 
@@ -117,29 +116,6 @@ class AlertViewSet(viewsets.ModelViewSet):
                 'error': 'Failed to delete alert'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
-    @action(detail=True, methods=['post'])
-    def test_alert(self, request, pk=None):
-        """Test an alert by evaluating it immediately"""
-        try:
-            alert = self.get_object()
-            
-            # Trigger evaluation task
-            task = evaluate_alert.delay(alert.id)
-            result = task.get(timeout=30)
-            
-            return Response({
-                'success': True,
-                'message': 'Alert tested successfully',
-                'result': result
-            })
-            
-        except Exception as e:
-            logger.error(f"Error testing alert: {e}")
-            return Response({
-                'success': False,
-                'error': str(e)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
     @action(detail=False, methods=['get'])
     def triggered(self, request):
         """Get user's triggered alerts"""
@@ -218,7 +194,6 @@ class AlertViewSet(viewsets.ModelViewSet):
 
 
 class TriggeredAlertViewSet(viewsets.ReadOnlyModelViewSet):
-    """ViewSet for viewing triggered alerts"""
     queryset = TriggeredAlert.objects.all()
     serializer_class = TriggeredAlertSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -227,26 +202,3 @@ class TriggeredAlertViewSet(viewsets.ReadOnlyModelViewSet):
         return TriggeredAlert.objects.filter(
             alert__user=self.request.user
         ).order_by('-triggered_at')
-    
-    @action(detail=True, methods=['post'])
-    def resend_notification(self, request, pk=None):
-        """Resend notification email for a triggered alert"""
-        try:
-            triggered_alert = self.get_object()
-            
-            # Trigger notification task
-            task = send_alert_notification.delay(triggered_alert.id)
-            result = task.get(timeout=30)
-            
-            return Response({
-                'success': True,
-                'message': 'Notification resend initiated',
-                'result': result
-            })
-            
-        except Exception as e:
-            logger.error(f"Error resending notification: {e}")
-            return Response({
-                'success': False,
-                'error': str(e)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

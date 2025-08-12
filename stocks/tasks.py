@@ -83,30 +83,3 @@ def cleanup_old_price_data():
     except Exception as e:
         logger.error(f"Price data cleanup failed: {e}")
         return {"success": False, "error": str(e)}
-
-
-@shared_task
-def cleanup_old_alerts():
-    try:
-        cutoff_date = timezone.now() - timedelta(days=7)
-        
-        old_alerts = TriggeredAlert.objects.filter(
-            triggered_at__lt=cutoff_date
-        )
-        
-        count = old_alerts.count()
-        
-        if count > 0:
-            old_alerts.delete()
-            logger.info(f"Cleaned up {count} old triggered alerts")
-        else:
-            logger.info("No old triggered alerts to clean up")
-        
-        return {
-            "success": True,
-            "cleaned_alerts": count
-        }
-        
-    except Exception as e:
-        logger.error(f"Triggered alert cleanup failed: {e}")
-        return {"success": False, "error": str(e)}

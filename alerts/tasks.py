@@ -212,31 +212,6 @@ def send_alert_notification(triggered_alert_id):
         }
 
 
-@shared_task
-def cleanup_old_triggered_alerts(days_to_keep=30):
-    """Clean up old triggered alert records"""
-    try:
-        cutoff_date = timezone.now() - timezone.timedelta(days=days_to_keep)
-        deleted_count, _ = TriggeredAlert.objects.filter(
-            triggered_at__lt=cutoff_date
-        ).delete()
-        
-        logger.info(f"Cleaned up {deleted_count} old triggered alert records")
-        
-        return {
-            'success': True,
-            'deleted_count': deleted_count,
-            'cutoff_date': cutoff_date.isoformat()
-        }
-        
-    except Exception as e:
-        logger.error(f"Error cleaning up triggered alerts: {e}")
-        return {
-            'success': False,
-            'error': str(e)
-        }
-
-
 def create_default_template(template_type):
     """Create default notification template"""
     if template_type == 'threshold':
