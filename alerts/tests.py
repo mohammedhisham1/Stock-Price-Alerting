@@ -4,7 +4,7 @@ from django.utils import timezone
 from decimal import Decimal
 from unittest.mock import patch
 
-from alerts.models import Alert, TriggeredAlert, NotificationTemplate
+from alerts.models import Alert, TriggeredAlert
 from stocks.models import Stock, StockPrice
 
 User = get_user_model()
@@ -154,26 +154,3 @@ class TriggeredAlertModelTest(TestCase):
         self.assertIsNone(triggered_alert.email_sent_at)
 
 
-class NotificationTemplateModelTest(TestCase):
-    def test_notification_template_creation(self):
-        template = NotificationTemplate.objects.create(
-            template_type='threshold',
-            subject='Test Subject',
-            html_content='<p>Test HTML</p>',
-            text_content='Test Text'
-        )
-        
-        self.assertEqual(template.template_type, 'threshold')
-        self.assertEqual(template.subject, 'Test Subject')
-        self.assertTrue(template.is_active)
-    
-    def test_template_str_representation(self):
-        template = NotificationTemplate.objects.create(
-            template_type='duration',
-            subject='Test Subject',
-            html_content='<p>Test HTML</p>',
-            text_content='Test Text'
-        )
-        
-        expected = 'Duration Template'
-        self.assertEqual(str(template), expected)

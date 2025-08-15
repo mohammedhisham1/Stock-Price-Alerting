@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Alert, TriggeredAlert, NotificationTemplate
+from .models import Alert, TriggeredAlert
 
 
 @admin.register(Alert)
@@ -25,8 +25,3 @@ class TriggeredAlertAdmin(admin.ModelAdmin):
     readonly_fields = ['triggered_at', 'email_sent_at']
 
 
-@admin.register(NotificationTemplate)
-class NotificationTemplateAdmin(admin.ModelAdmin):
-    list_display = ['template_type', 'subject', 'is_active', 'created_at', 'updated_at']
-    list_filter = ['template_type', 'is_active']
-    ordering = ['template_type']

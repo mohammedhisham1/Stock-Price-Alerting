@@ -133,21 +133,4 @@ class TriggeredAlert(models.Model):
         return f"Triggered: {self.alert} at ${self.trigger_price} on {self.triggered_at}"
 
 
-class NotificationTemplate(models.Model):
-    """Model for email notification templates"""
-    
-    TEMPLATE_TYPES = [
-        ('threshold', 'Threshold Alert'),
-        ('duration', 'Duration Alert'),
-    ]
-    
-    template_type = models.CharField(max_length=20, choices=TEMPLATE_TYPES, unique=True)
-    subject = models.CharField(max_length=200)
-    html_content = models.TextField()
-    text_content = models.TextField()
-    is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    
-    def __str__(self):
-        return f"{self.template_type.title()} Template"
+

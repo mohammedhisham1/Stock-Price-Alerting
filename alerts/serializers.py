@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Alert, TriggeredAlert, NotificationTemplate
+from .models import Alert, TriggeredAlert
 from stocks.models import Stock
 
 
@@ -104,11 +104,3 @@ class TriggeredAlertSerializer(serializers.ModelSerializer):
         )
 
 
-class NotificationTemplateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = NotificationTemplate
-        fields = [
-            'id', 'template_type', 'subject', 'html_content', 
-            'text_content', 'is_active', 'created_at', 'updated_at'
-        ]
-        read_only_fields = ['id', 'created_at', 'updated_at']

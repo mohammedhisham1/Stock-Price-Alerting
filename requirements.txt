@@ -14,3 +14,4 @@ gunicorn==21.2.0
 setuptools==80.9.0
 whitenoise==6.5.0
 django-celery-results==2.6.0
+flower==2.0.1
