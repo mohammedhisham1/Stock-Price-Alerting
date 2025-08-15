@@ -18,11 +18,11 @@ from celery.schedules import crontab
 app.conf.beat_schedule = {
     'fetch-stock-prices': {
         'task': 'stocks.tasks.fetch_all_stock_prices',
-        'schedule': crontab(minute='*/5', hour='9-16', day_of_week='1-5'),  # Every 30 min during market hours (Mon-Fri, 9-16 UTC)
+        'schedule': crontab(minute='*/30', hour='9-16', day_of_week='1-5'),  # Every 30 min during market hours (Mon-Fri, 9-16 UTC)
     },
     'evaluate-alerts': {
         'task': 'alerts.tasks.evaluate_all_alerts', 
-        'schedule': crontab(minute='*/2'),   # Every 5 minutes
+        'schedule': crontab(minute='*/2'),   # Every 2 minutes
     },
     'cleanup-old-data': {
         'task': 'stocks.tasks.cleanup_old_price_data',
