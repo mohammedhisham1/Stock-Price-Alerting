@@ -17,8 +17,9 @@ class StockViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
+        """Allow filtering stocks by symbol"""
         queryset = super().get_queryset()
-        symbol = self.request.query_params.get('symbol', None)
+        symbol = self.request.query_params.get('symbol')
         if symbol:
             queryset = queryset.filter(symbol__icontains=symbol)
         return queryset.order_by('symbol')
@@ -28,7 +29,29 @@ class StockViewSet(viewsets.ReadOnlyModelViewSet):
         """Get price history for a specific stock"""
         try:
             stock = self.get_object()
-            hours = int(request.query_params.get('hours', 24))
+            hours_param = request.query_params.get('hours', '24')
+            
+            # Validate hours parameter
+            try:
+                hours = int(hours_param)
+            except ValueError:
+                return Response({
+                    'success': False,
+                    'error': 'Hours parameter must be a valid integer'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Validate hours range
+            if hours <= 0:
+                return Response({
+                    'success': False,
+                    'error': 'Hours parameter must be greater than 0'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            if hours > 720:  # 30 days * 24 hours
+                return Response({
+                    'success': False,
+                    'error': 'Hours parameter cannot exceed 720 (30 days)'
+                }, status=status.HTTP_400_BAD_REQUEST)
             
             since = timezone.now() - timezone.timedelta(hours=hours)
             prices = StockPrice.objects.filter(
@@ -46,11 +69,6 @@ class StockViewSet(viewsets.ReadOnlyModelViewSet):
                 'data': serializer.data
             })
             
-        except ValueError:
-            return Response({
-                'success': False,
-                'error': 'Invalid hours parameter'
-            }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             logger.error(f"Error fetching price history: {e}")
             return Response({

@@ -2,9 +2,9 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from stocks.models import Stock
+from django.core.exceptions import ValidationError
 
 User = get_user_model()
-
 
 class Alert(models.Model):
     """Model representing a user's stock alert"""
@@ -57,7 +57,6 @@ class Alert(models.Model):
         return f"{self.user.username}: {self.stock.symbol} {self.condition} ${self.threshold_price}{duration_str}"
     
     def clean(self):
-        from django.core.exceptions import ValidationError
         if self.alert_type == 'duration':
             if not self.duration_minutes:
                 raise ValidationError("Duration minutes is required for duration alerts")
