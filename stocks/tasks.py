@@ -36,8 +36,8 @@ def fetch_all_stock_prices():
                 logger.info(f" Updated {stock.symbol}")
             else:
                 error_count += 1
-                logger.error(f" Failed to update {stock.symbol}")
-            
+                logger.warning(f" Failed to update {stock.symbol}")
+
             # Rate limiting: Wait between requests
             if i < active_stocks.count() - 1:
                 logger.info("Waiting 10 seconds before next request...")
