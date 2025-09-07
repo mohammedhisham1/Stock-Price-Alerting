@@ -5,8 +5,10 @@
 This system provides users with powerful stock monitoring capabilities without requiring paid APIs or tools. Built with Django REST Framework and React, it delivers real-time price tracking, intelligent alerts, and seamless notifications via email.
 
 
-
+## Demo Video
+![Demo](demo.gif)
 ---
+
 
 ## 🏗️ **Architecture**
 
